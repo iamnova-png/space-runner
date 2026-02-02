@@ -191,30 +191,39 @@ function drawGround() {
 
 function drawLives() {
   // Draw custom heart shapes instead of emoji (consistent sizing)
-  const heartSize = 12;
-  const spacing = 30;
-  const startX = canvas.width - 95;
-  const y = 60;
+  const size = 10;
+  const spacing = 28;
+  const startX = canvas.width - 90;
+  const baseY = 58;
   
   for (let i = 0; i < 3; i++) {
-    const x = startX + i * spacing;
+    const cx = startX + i * spacing;
     const isFull = i < lives;
     
-    ctx.fillStyle = isFull ? '#ff4466' : '#333344';
+    ctx.fillStyle = isFull ? '#ff4466' : '#444455';
     ctx.beginPath();
-    // Draw heart shape
-    ctx.moveTo(x, y + heartSize * 0.3);
-    ctx.bezierCurveTo(x, y, x - heartSize, y, x - heartSize, y + heartSize * 0.3);
-    ctx.bezierCurveTo(x - heartSize, y + heartSize * 0.6, x, y + heartSize, x, y + heartSize * 1.2);
-    ctx.bezierCurveTo(x, y + heartSize, x + heartSize, y + heartSize * 0.6, x + heartSize, y + heartSize * 0.3);
-    ctx.bezierCurveTo(x + heartSize, y, x, y, x, y + heartSize * 0.3);
+    
+    // Better heart shape - two bumps on top, point at bottom
+    const topY = baseY;
+    const bottomY = baseY + size * 1.8;
+    const width = size;
+    
+    ctx.moveTo(cx, topY + size * 0.4);
+    // Left bump
+    ctx.bezierCurveTo(cx - width * 0.1, topY, cx - width, topY, cx - width, topY + size * 0.5);
+    // Left side down to point
+    ctx.bezierCurveTo(cx - width, topY + size, cx, bottomY - size * 0.3, cx, bottomY);
+    // Right side up from point
+    ctx.bezierCurveTo(cx, bottomY - size * 0.3, cx + width, topY + size, cx + width, topY + size * 0.5);
+    // Right bump
+    ctx.bezierCurveTo(cx + width, topY, cx + width * 0.1, topY, cx, topY + size * 0.4);
     ctx.fill();
     
     // Add shine to full hearts
     if (isFull) {
-      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
       ctx.beginPath();
-      ctx.arc(x - heartSize * 0.4, y + heartSize * 0.35, heartSize * 0.25, 0, Math.PI * 2);
+      ctx.ellipse(cx - size * 0.35, topY + size * 0.45, size * 0.2, size * 0.25, -0.3, 0, Math.PI * 2);
       ctx.fill();
     }
   }
