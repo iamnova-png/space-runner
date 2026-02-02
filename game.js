@@ -672,6 +672,9 @@ function drawObstacle(obs) {
   const cx = obs.x + obs.width/2;
   const cy = obs.y + obs.height/2;
   
+  // Update rotation
+  obs.rotation += obs.rotationSpeed;
+  
   if (obs.type === 'satellite') {
     // Spinning satellite
     ctx.save();
@@ -710,20 +713,26 @@ function drawObstacle(obs) {
     
     ctx.restore();
   } else {
-    // Asteroid (default)
+    // Rotating asteroid
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(obs.rotation);
+    
     ctx.fillStyle = currentEnvIndex === 1 ? '#a0522d' : '#8b7355';
     ctx.beginPath();
-    ctx.arc(cx, cy, obs.width/2, 0, Math.PI * 2);
+    ctx.arc(0, 0, obs.width/2, 0, Math.PI * 2);
     ctx.fill();
     
-    // Craters
+    // Craters (rotate with asteroid)
     ctx.fillStyle = currentEnvIndex === 1 ? '#8b4513' : '#6b5344';
     ctx.beginPath();
-    ctx.arc(obs.x + obs.width/3, obs.y + obs.height/3, obs.width * 0.15, 0, Math.PI * 2);
+    ctx.arc(-obs.width/6, -obs.width/6, obs.width * 0.15, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(obs.x + obs.width * 0.65, obs.y + obs.height * 0.6, obs.width * 0.1, 0, Math.PI * 2);
+    ctx.arc(obs.width * 0.15, obs.width * 0.1, obs.width * 0.1, 0, Math.PI * 2);
     ctx.fill();
+    
+    ctx.restore();
   }
 }
 
@@ -897,7 +906,9 @@ function spawnPattern() {
       height: obs.size,
       type: isSatellite ? 'satellite' : 'asteroid',
       moving: isMoving,
-      moveOffset: Math.random() * Math.PI * 2
+      moveOffset: Math.random() * Math.PI * 2,
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: 0.02 + Math.random() * 0.03
     });
   });
   
