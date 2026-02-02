@@ -190,14 +190,33 @@ function drawGround() {
 }
 
 function drawLives() {
-  const heartSize = 25;
-  const startX = canvas.width - 100;
-  const y = 55;
+  // Draw custom heart shapes instead of emoji (consistent sizing)
+  const heartSize = 12;
+  const spacing = 30;
+  const startX = canvas.width - 95;
+  const y = 60;
   
-  ctx.font = `${heartSize}px Arial`;
   for (let i = 0; i < 3; i++) {
-    // Use red heart for remaining lives, black heart for lost
-    ctx.fillText(i < lives ? '❤️' : '🖤', startX + i * 30, y);
+    const x = startX + i * spacing;
+    const isFull = i < lives;
+    
+    ctx.fillStyle = isFull ? '#ff4466' : '#333344';
+    ctx.beginPath();
+    // Draw heart shape
+    ctx.moveTo(x, y + heartSize * 0.3);
+    ctx.bezierCurveTo(x, y, x - heartSize, y, x - heartSize, y + heartSize * 0.3);
+    ctx.bezierCurveTo(x - heartSize, y + heartSize * 0.6, x, y + heartSize, x, y + heartSize * 1.2);
+    ctx.bezierCurveTo(x, y + heartSize, x + heartSize, y + heartSize * 0.6, x + heartSize, y + heartSize * 0.3);
+    ctx.bezierCurveTo(x + heartSize, y, x, y, x, y + heartSize * 0.3);
+    ctx.fill();
+    
+    // Add shine to full hearts
+    if (isFull) {
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.beginPath();
+      ctx.arc(x - heartSize * 0.4, y + heartSize * 0.35, heartSize * 0.25, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 }
 
