@@ -1032,10 +1032,10 @@ function update() {
   let targetTilt, tiltSpeed, maxTilt;
   
   if (selectedChar === 'alien') {
-    // UFO leans forward aggressively when rising, tilts back when falling
-    targetTilt = player.vy * 0.03; // More dramatic
-    tiltSpeed = 0.15; // Slower response (floaty)
-    maxTilt = 0.5; // Can tilt more
+    // UFO leans FORWARD when rising (into the movement), back when falling
+    targetTilt = player.vy * -0.035; // Inverted - lean forward on ascent
+    tiltSpeed = 0.12; // Slower response (floaty)
+    maxTilt = 0.45; // Can tilt more
   } else if (selectedChar === 'hovercraft') {
     // Hovercraft banks smoothly, stays more level
     targetTilt = player.vy * 0.012;
