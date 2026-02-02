@@ -830,15 +830,8 @@ function spawnFloatingText(x, y, text, color) {
 // Jump system
 function startJump() {
   if (player.grounded && gameRunning) {
-    // Character-specific jump force
-    let charJumpForce = jumpForce;
-    if (selectedChar === 'alien') {
-      charJumpForce = jumpForce * 0.85; // Softer initial push, but floats longer
-    } else if (selectedChar === 'hovercraft') {
-      charJumpForce = jumpForce * 0.95;
-    }
-    
-    player.vy = charJumpForce;
+    // Same responsive jump for all - differences are in gravity/tilt
+    player.vy = jumpForce;
     player.grounded = false;
     isJumping = true;
     jumpHeld = true;
@@ -1002,16 +995,16 @@ function update() {
   
   const groundY = getGroundY();
   
-  // Character-specific physics
+  // Character-specific physics (subtle differences, all responsive)
   let charGravity = gravity;
   let charJumpDecay = 0.4;
   
   if (selectedChar === 'alien') {
-    charGravity = gravity * 0.6;  // Floatier
-    charJumpDecay = 0.25;         // Smoother ascent
-  } else if (selectedChar === 'hovercraft') {
-    charGravity = gravity * 0.85; // Slightly floaty
+    charGravity = gravity * 0.85;  // Slightly floatier
     charJumpDecay = 0.35;
+  } else if (selectedChar === 'hovercraft') {
+    charGravity = gravity * 0.9;
+    charJumpDecay = 0.38;
   }
   
   // Variable jump with character-specific feel
@@ -1024,11 +1017,6 @@ function update() {
     }
   } else {
     player.vy += charGravity;
-  }
-  
-  // Smooth velocity for alien (dampen sudden changes)
-  if (selectedChar === 'alien') {
-    player.vy *= 0.98; // Gentle air resistance
   }
   
   player.y += player.vy;
@@ -1057,10 +1045,10 @@ function update() {
   let targetTilt, tiltSpeed, maxTilt;
   
   if (selectedChar === 'alien') {
-    // UFO leans FORWARD when rising - smooth and gradual
-    targetTilt = player.vy * -0.025; // Gentler tilt
-    tiltSpeed = 0.06; // Much slower response (silky smooth)
-    maxTilt = 0.35; // Not too extreme
+    // UFO leans FORWARD when rising - responsive but smooth
+    targetTilt = player.vy * -0.02; // Forward lean on ascent
+    tiltSpeed = 0.15; // Responsive
+    maxTilt = 0.3;
   } else if (selectedChar === 'hovercraft') {
     // Hovercraft banks smoothly, stays more level
     targetTilt = player.vy * 0.012;
