@@ -548,9 +548,9 @@ function drawProgressBar() {
   // Circle/dot marker on the line
   ctx.fillStyle = '#44ff88';
   ctx.shadowColor = '#44ff88';
-  ctx.shadowBlur = 12;
+  ctx.shadowBlur = 8;
   ctx.beginPath();
-  ctx.arc(iconX, iconY, 14, 0, Math.PI * 2);
+  ctx.arc(iconX, iconY, 6, 0, Math.PI * 2);
   ctx.fill();
   ctx.shadowBlur = 0;
   
