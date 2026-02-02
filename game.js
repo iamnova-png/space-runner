@@ -1345,6 +1345,9 @@ function updateTransition() {
     document.getElementById('round-score').textContent = score;
     document.getElementById('round-coins').textContent = coins;
     document.getElementById('round-distance').textContent = Math.floor(distanceTraveled);
+    
+    // Draw animated character
+    drawRoundCharacter();
   }
   
   // Transition complete
@@ -1530,6 +1533,110 @@ function drawCharPreviews() {
     
     pctx.restore();
   });
+}
+
+function drawRoundCharacter() {
+  const roundCharCanvas = document.getElementById('round-char');
+  const rctx = roundCharCanvas.getContext('2d');
+  rctx.clearRect(0, 0, 100, 100);
+  
+  rctx.save();
+  rctx.translate(50, 55);
+  const scale = 1.2;
+  rctx.scale(scale, scale);
+  
+  // Hover bob animation
+  const bob = Math.sin(Date.now() / 300) * 3;
+  rctx.translate(0, bob);
+  
+  if (selectedChar === 'spacekid') {
+    // Body
+    rctx.fillStyle = '#ffffff';
+    rctx.beginPath();
+    rctx.roundRect(-15, -18, 30, 28, 6);
+    rctx.fill();
+    // Helmet
+    rctx.fillStyle = '#5588ff';
+    rctx.beginPath();
+    rctx.arc(0, -18, 14, 0, Math.PI * 2);
+    rctx.fill();
+    // Visor
+    rctx.fillStyle = '#88ccff';
+    rctx.beginPath();
+    rctx.arc(2, -18, 9, 0, Math.PI * 2);
+    rctx.fill();
+    // Face
+    rctx.fillStyle = '#ffcc99';
+    rctx.beginPath();
+    rctx.arc(1, -18, 6, 0, Math.PI * 2);
+    rctx.fill();
+    // Jetpack
+    rctx.fillStyle = '#ff6b6b';
+    rctx.fillRect(-21, -12, 8, 18);
+    // Flame
+    rctx.fillStyle = '#ff4400';
+    rctx.beginPath();
+    rctx.moveTo(-18, 6);
+    rctx.lineTo(-21, 18);
+    rctx.lineTo(-14, 6);
+    rctx.fill();
+    rctx.fillStyle = '#ffcc00';
+    rctx.beginPath();
+    rctx.moveTo(-18, 6);
+    rctx.lineTo(-19, 12);
+    rctx.lineTo(-16, 6);
+    rctx.fill();
+  } else if (selectedChar === 'hovercraft') {
+    // Cockpit
+    rctx.fillStyle = '#44ddff';
+    rctx.beginPath();
+    rctx.ellipse(0, -15, 14, 11, 0, Math.PI, 0);
+    rctx.fill();
+    // Body
+    rctx.fillStyle = '#ff6644';
+    rctx.beginPath();
+    rctx.ellipse(0, -4, 21, 9, 0, 0, Math.PI * 2);
+    rctx.fill();
+    // Stripe
+    rctx.fillStyle = '#ffcc00';
+    rctx.fillRect(-19, -6, 38, 4);
+    // Glow
+    rctx.fillStyle = 'rgba(0, 255, 255, 0.5)';
+    rctx.beginPath();
+    rctx.ellipse(0, 6, 17, 5, 0, 0, Math.PI * 2);
+    rctx.fill();
+  } else if (selectedChar === 'alien') {
+    // Head
+    rctx.fillStyle = '#88ff88';
+    rctx.beginPath();
+    rctx.ellipse(0, -17, 11, 10, 0, Math.PI, 0);
+    rctx.fill();
+    // Eyes
+    rctx.fillStyle = '#44dd44';
+    rctx.beginPath();
+    rctx.ellipse(0, -20, 6, 7, 0, 0, Math.PI * 2);
+    rctx.fill();
+    rctx.fillStyle = '#111';
+    rctx.beginPath();
+    rctx.ellipse(-2, -21, 3, 4, 0, 0, Math.PI * 2);
+    rctx.ellipse(4, -21, 3, 4, 0, 0, Math.PI * 2);
+    rctx.fill();
+    // UFO
+    rctx.fillStyle = '#9966cc';
+    rctx.beginPath();
+    rctx.ellipse(0, -7, 22, 8, 0, 0, Math.PI * 2);
+    rctx.fill();
+    // Beam
+    rctx.fillStyle = 'rgba(136, 255, 136, 0.3)';
+    rctx.beginPath();
+    rctx.moveTo(-11, 0);
+    rctx.lineTo(-15, 18);
+    rctx.lineTo(15, 18);
+    rctx.lineTo(11, 0);
+    rctx.fill();
+  }
+  
+  rctx.restore();
 }
 
 function selectCharacter(char) {

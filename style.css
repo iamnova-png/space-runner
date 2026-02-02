@@ -226,25 +226,34 @@ button:active {
   transform: translateY(0);
 }
 
-.round-stats {
-  background: rgba(0, 0, 0, 0.7);
-  padding: 20px 40px;
-  border-radius: 15px;
+.round-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
   margin-bottom: 20px;
   opacity: 0;
   transform: translateY(-20px);
   transition: all 0.5s ease-out 0.2s;
 }
 
-#round-complete.show-ui .round-stats {
+#round-complete.show-ui .round-content {
   opacity: 1;
   transform: translateY(0);
+}
+
+#round-char {
+  flex-shrink: 0;
+}
+
+.round-stats {
+  text-align: left;
 }
 
 .round-stats p {
   font-size: 20px;
   color: #aaccff;
   margin: 8px 0;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
 }
 
 .round-stats span {
