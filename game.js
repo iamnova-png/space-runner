@@ -15,6 +15,11 @@ let selectedChar = 'spacekid';
 
 // Game state
 let gameRunning = false;
+let currentRound = 1;
+let roundComplete = false;
+let transitionProgress = 0;
+let transitionActive = false;
+const ROUND_1_DISTANCE = 5000;
 let score = 0;
 let coins = 0;
 let lives = 3;
@@ -1004,6 +1009,18 @@ function collectPowerUp(pu) {
 function update() {
   if (!gameRunning) return;
   
+  // Check for round complete
+  if (currentRound === 1 && distanceTraveled >= ROUND_1_DISTANCE && !roundComplete) {
+    startRoundTransition();
+    return;
+  }
+  
+  // Handle transition animation
+  if (transitionActive) {
+    updateTransition();
+    return;
+  }
+  
   const groundY = getGroundY();
   
   // Character-specific physics (subtle differences, all responsive)
@@ -1274,6 +1291,14 @@ function startGame() {
   screenShake = 0;
   damageFlash = 0;
   activeEffects = { shield: false, magnet: false, doubleCoin: 0 };
+  currentRound = 1;
+  roundComplete = false;
+  transitionActive = false;
+  transitionProgress = 0;
+  
+  // Hide round complete screen if visible
+  document.getElementById('round-complete').classList.add('hidden');
+  document.getElementById('round-complete').classList.remove('show-ui');
   
   startScreen.classList.add('hidden');
   gameOverScreen.classList.add('hidden');
@@ -1283,6 +1308,109 @@ function startGame() {
   
   scoreEl.textContent = '0';
   coinsEl.textContent = '🪙 0';
+}
+
+function startRoundTransition() {
+  roundComplete = true;
+  transitionActive = true;
+  transitionProgress = 0;
+  
+  // Show round complete overlay (but not UI yet)
+  document.getElementById('round-complete').classList.remove('hidden');
+}
+
+function updateTransition() {
+  transitionProgress += 0.008; // Slow, epic transition
+  
+  // Ease out curve
+  const ease = 1 - Math.pow(1 - Math.min(transitionProgress, 1), 3);
+  
+  // Move ground down
+  const groundOffset = ease * 400;
+  
+  // Move player up to center
+  const targetY = canvas.height / 2 - player.height;
+  player.y = player.y + (targetY - player.y) * 0.03;
+  player.bobOffset = Math.sin(Date.now() / 300) * 5;
+  
+  // Draw transition frame
+  drawTransition(groundOffset, ease);
+  
+  // Show UI after transition mostly complete
+  if (transitionProgress > 0.6) {
+    const roundCompleteEl = document.getElementById('round-complete');
+    roundCompleteEl.classList.add('show-ui');
+    
+    // Update stats
+    document.getElementById('round-score').textContent = score;
+    document.getElementById('round-coins').textContent = coins;
+    document.getElementById('round-distance').textContent = Math.floor(distanceTraveled);
+  }
+  
+  // Transition complete
+  if (transitionProgress >= 1.5) {
+    transitionActive = false;
+    gameRunning = false;
+  }
+}
+
+function drawTransition(groundOffset, ease) {
+  const env = getEnv();
+  
+  // Sky gets darker/more spacey
+  const skyDarkness = ease * 0.5;
+  ctx.fillStyle = `rgb(${10 - skyDarkness * 10}, ${10 - skyDarkness * 10}, ${32 - skyDarkness * 20})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Stars move up slightly
+  drawStars();
+  
+  // Parallax layers fall away
+  ctx.save();
+  ctx.translate(0, groundOffset * 0.5);
+  drawParallaxLayers();
+  ctx.restore();
+  
+  // Ground falls away faster
+  ctx.save();
+  ctx.translate(0, groundOffset);
+  drawGround();
+  
+  // Remaining obstacles fall with ground
+  obstacles.forEach(obs => {
+    drawObstacle(obs);
+  });
+  ctx.restore();
+  
+  // Coins float up with player
+  coinObjects.forEach(coin => {
+    coin.y -= 2;
+    drawCoin(coin);
+  });
+  
+  // Player rises majestically
+  const flameIntensity = 1.5 + Math.sin(Date.now() / 100) * 0.3;
+  drawCharacter(selectedChar, player.x + player.width/2, player.y + player.bobOffset + player.height/2, 1, 0, flameIntensity);
+  
+  // Particle trail behind player
+  if (Math.random() < 0.3) {
+    particles.push({
+      x: player.x + player.width/2 + (Math.random() - 0.5) * 20,
+      y: player.y + player.height + 10,
+      vx: (Math.random() - 0.5) * 2,
+      vy: 3 + Math.random() * 2,
+      size: 3 + Math.random() * 4,
+      color: selectedChar === 'alien' ? '#88ff88' : selectedChar === 'hovercraft' ? '#00ffff' : '#ffaa00',
+      life: 1
+    });
+  }
+  
+  drawParticles();
+  
+  // UI
+  drawLives();
+  scoreEl.textContent = score;
+  coinsEl.textContent = '🪙 ' + coins;
 }
 
 function gameOver() {
@@ -1416,8 +1544,35 @@ charOptions.forEach(opt => {
   });
 });
 
+const nextRoundBtn = document.getElementById('next-round-btn');
+
+function startRound2() {
+  currentRound = 2;
+  roundComplete = false;
+  transitionActive = false;
+  transitionProgress = 0;
+  
+  document.getElementById('round-complete').classList.add('hidden');
+  document.getElementById('round-complete').classList.remove('show-ui');
+  
+  // Reset position for round 2
+  player.y = canvas.height / 2 - player.height;
+  player.vy = 0;
+  player.grounded = false; // Flying in space!
+  
+  obstacles = [];
+  coinObjects = [];
+  powerUps = [];
+  
+  gameRunning = true;
+  
+  // TODO: Round 2 will have flappy bird mechanics
+  // For now just continue with modified gameplay
+}
+
 startBtn.addEventListener('click', showCharSelect);
 restartBtn.addEventListener('click', showCharSelect);
+nextRoundBtn.addEventListener('click', startRound2);
 
 // Initialize
 updateStartScreen();
