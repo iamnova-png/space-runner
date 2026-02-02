@@ -36,7 +36,9 @@ const player = {
   width: 40,
   height: 50,
   vy: 0,
-  grounded: false
+  grounded: false,
+  bobOffset: 0,
+  tilt: 0
 };
 
 // Game objects
@@ -46,6 +48,7 @@ let powerUps = [];
 let stars = [];
 let particles = [];
 let floatingTexts = [];
+let shootingStars = [];
 
 // Level generation
 let patternCooldown = 0;
@@ -150,6 +153,41 @@ function drawStars() {
     }
   });
   ctx.globalAlpha = 1;
+  
+  // Shooting stars
+  if (gameRunning && Math.random() < 0.005) {
+    shootingStars.push({
+      x: canvas.width + 50,
+      y: Math.random() * canvas.height * 0.6,
+      speed: 15 + Math.random() * 10,
+      length: 30 + Math.random() * 40
+    });
+  }
+  
+  // Draw and update shooting stars
+  shootingStars.forEach((ss, i) => {
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(ss.x, ss.y);
+    ctx.lineTo(ss.x + ss.length, ss.y - ss.length * 0.3);
+    ctx.stroke();
+    
+    // Glow
+    ctx.strokeStyle = 'rgba(255, 255, 200, 0.3)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(ss.x, ss.y);
+    ctx.lineTo(ss.x + ss.length * 0.5, ss.y - ss.length * 0.15);
+    ctx.stroke();
+    
+    ss.x -= ss.speed;
+    ss.y += ss.speed * 0.3;
+    
+    if (ss.x + ss.length < 0 || ss.y > canvas.height) {
+      shootingStars.splice(i, 1);
+    }
+  });
 }
 
 function drawEnvironmentParticles() {
@@ -259,99 +297,155 @@ function drawActiveEffects() {
 }
 
 function drawPlayer() {
-  const { x, y, width, height } = player;
+  const { x, width, height } = player;
+  
+  // Apply hover bob offset
+  const drawY = player.y + player.bobOffset;
   
   // Flash when invincible
   if (invincibleUntil > Date.now() && Math.floor(Date.now() / 100) % 2 === 0) {
     ctx.globalAlpha = 0.5;
   }
   
+  ctx.save();
+  
+  // Apply tilt rotation
+  ctx.translate(x + width/2, drawY + height/2);
+  ctx.rotate(player.tilt);
+  ctx.translate(-(x + width/2), -(drawY + height/2));
+  
   // Shield glow
   if (activeEffects.shield) {
     ctx.fillStyle = 'rgba(0, 191, 255, 0.3)';
     ctx.beginPath();
-    ctx.arc(x + width/2, y + height/2, 40, 0, Math.PI * 2);
+    ctx.arc(x + width/2, drawY + height/2, 40, 0, Math.PI * 2);
     ctx.fill();
   }
   
   // Body (space suit)
   ctx.fillStyle = '#ffffff';
   ctx.beginPath();
-  ctx.roundRect(x, y + 15, width, height - 15, 8);
+  ctx.roundRect(x, drawY + 15, width, height - 15, 8);
   ctx.fill();
   
   // Helmet
   ctx.fillStyle = '#5588ff';
   ctx.beginPath();
-  ctx.arc(x + width/2, y + 15, 18, 0, Math.PI * 2);
+  ctx.arc(x + width/2, drawY + 15, 18, 0, Math.PI * 2);
   ctx.fill();
   
   // Visor
   ctx.fillStyle = '#88ccff';
   ctx.beginPath();
-  ctx.arc(x + width/2 + 3, y + 15, 12, 0, Math.PI * 2);
+  ctx.arc(x + width/2 + 3, drawY + 15, 12, 0, Math.PI * 2);
   ctx.fill();
   
   // Face
   ctx.fillStyle = '#ffcc99';
   ctx.beginPath();
-  ctx.arc(x + width/2 + 2, y + 15, 8, 0, Math.PI * 2);
+  ctx.arc(x + width/2 + 2, drawY + 15, 8, 0, Math.PI * 2);
   ctx.fill();
   
   // Eyes
   ctx.fillStyle = '#333';
   ctx.beginPath();
-  ctx.arc(x + width/2, y + 13, 2, 0, Math.PI * 2);
-  ctx.arc(x + width/2 + 6, y + 13, 2, 0, Math.PI * 2);
+  ctx.arc(x + width/2, drawY + 13, 2, 0, Math.PI * 2);
+  ctx.arc(x + width/2 + 6, drawY + 13, 2, 0, Math.PI * 2);
   ctx.fill();
   
   // Smile
   ctx.strokeStyle = '#333';
   ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.arc(x + width/2 + 3, y + 16, 4, 0.1 * Math.PI, 0.9 * Math.PI);
+  ctx.arc(x + width/2 + 3, drawY + 16, 4, 0.1 * Math.PI, 0.9 * Math.PI);
   ctx.stroke();
   
   // Jetpack
   ctx.fillStyle = '#ff6b6b';
-  ctx.fillRect(x - 8, y + 25, 10, 25);
+  ctx.fillRect(x - 8, drawY + 25, 10, 25);
   ctx.fillStyle = '#ffaa00';
-  ctx.fillRect(x - 6, y + 30, 6, 8);
+  ctx.fillRect(x - 6, drawY + 30, 6, 8);
   
-  // Jetpack flame
-  if (!player.grounded || jumpHeld) {
-    const flameIntensity = jumpHeld ? 1.5 : 1;
-    ctx.fillStyle = '#ff4400';
-    ctx.beginPath();
-    ctx.moveTo(x - 5, y + 50);
-    ctx.lineTo(x - 8, y + 50 + (15 + Math.random() * 10) * flameIntensity);
-    ctx.lineTo(x + 1, y + 50);
-    ctx.fill();
-    
-    ctx.fillStyle = '#ffff00';
-    ctx.beginPath();
-    ctx.moveTo(x - 4, y + 50);
-    ctx.lineTo(x - 5, y + 50 + (8 + Math.random() * 5) * flameIntensity);
-    ctx.lineTo(x - 1, y + 50);
-    ctx.fill();
-  }
+  // Jetpack flame - always on (idle), bigger when jumping
+  const flameIntensity = !player.grounded ? (jumpHeld ? 1.8 : 1.2) : 0.5 + Math.sin(Date.now() / 100) * 0.2;
   
+  // Outer flame
+  ctx.fillStyle = '#ff4400';
+  ctx.beginPath();
+  ctx.moveTo(x - 5, drawY + 50);
+  ctx.lineTo(x - 8, drawY + 50 + (12 + Math.random() * 8) * flameIntensity);
+  ctx.lineTo(x + 1, drawY + 50);
+  ctx.fill();
+  
+  // Inner flame
+  ctx.fillStyle = '#ffff00';
+  ctx.beginPath();
+  ctx.moveTo(x - 4, drawY + 50);
+  ctx.lineTo(x - 5, drawY + 50 + (6 + Math.random() * 4) * flameIntensity);
+  ctx.lineTo(x - 1, drawY + 50);
+  ctx.fill();
+  
+  ctx.restore();
   ctx.globalAlpha = 1;
 }
 
 function drawObstacle(obs) {
-  ctx.fillStyle = currentEnvIndex === 1 ? '#a0522d' : '#8b7355';
-  ctx.beginPath();
-  ctx.arc(obs.x + obs.width/2, obs.y + obs.height/2, obs.width/2, 0, Math.PI * 2);
-  ctx.fill();
+  const cx = obs.x + obs.width/2;
+  const cy = obs.y + obs.height/2;
   
-  ctx.fillStyle = currentEnvIndex === 1 ? '#8b4513' : '#6b5344';
-  ctx.beginPath();
-  ctx.arc(obs.x + obs.width/3, obs.y + obs.height/3, obs.width * 0.15, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(obs.x + obs.width * 0.6, obs.y + obs.height * 0.6, obs.width * 0.1, 0, Math.PI * 2);
-  ctx.fill();
+  if (obs.type === 'satellite') {
+    // Spinning satellite
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(Date.now() / 500);
+    
+    // Body
+    ctx.fillStyle = '#888899';
+    ctx.fillRect(-obs.width/4, -obs.height/6, obs.width/2, obs.height/3);
+    
+    // Solar panels
+    ctx.fillStyle = '#3355aa';
+    ctx.fillRect(-obs.width/2, -obs.height/8, obs.width/4, obs.height/4);
+    ctx.fillRect(obs.width/4, -obs.height/8, obs.width/4, obs.height/4);
+    
+    // Panel lines
+    ctx.strokeStyle = '#5577cc';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 3; i++) {
+      const lx = -obs.width/2 + obs.width/12 + i * obs.width/12;
+      ctx.beginPath();
+      ctx.moveTo(lx, -obs.height/8);
+      ctx.lineTo(lx, obs.height/8);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(lx + obs.width * 0.75, -obs.height/8);
+      ctx.lineTo(lx + obs.width * 0.75, obs.height/8);
+      ctx.stroke();
+    }
+    
+    // Dish
+    ctx.fillStyle = '#aaaaaa';
+    ctx.beginPath();
+    ctx.arc(0, -obs.height/6, obs.width/8, Math.PI, 0);
+    ctx.fill();
+    
+    ctx.restore();
+  } else {
+    // Asteroid (default)
+    ctx.fillStyle = currentEnvIndex === 1 ? '#a0522d' : '#8b7355';
+    ctx.beginPath();
+    ctx.arc(cx, cy, obs.width/2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Craters
+    ctx.fillStyle = currentEnvIndex === 1 ? '#8b4513' : '#6b5344';
+    ctx.beginPath();
+    ctx.arc(obs.x + obs.width/3, obs.y + obs.height/3, obs.width * 0.15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(obs.x + obs.width * 0.65, obs.y + obs.height * 0.6, obs.width * 0.1, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }
 
 function drawCoin(coin) {
@@ -490,11 +584,18 @@ function spawnPattern() {
   const obstacleData = pattern.generate(startX);
   
   obstacleData.forEach(obs => {
+    const isSatellite = Math.random() < 0.25 && difficulty >= 2;
+    const isMoving = Math.random() < 0.2 && difficulty >= 3;
+    
     obstacles.push({
       x: obs.x,
       y: groundY - obs.size,
+      baseY: groundY - obs.size,
       width: obs.size,
-      height: obs.size
+      height: obs.size,
+      type: isSatellite ? 'satellite' : 'asteroid',
+      moving: isMoving,
+      moveOffset: Math.random() * Math.PI * 2
     });
   });
   
@@ -612,6 +713,18 @@ function update() {
     isJumping = false;
   }
   
+  // Hover bob animation when grounded
+  if (player.grounded) {
+    player.bobOffset = Math.sin(Date.now() / 200) * 3;
+  } else {
+    player.bobOffset = 0;
+  }
+  
+  // Tilt based on vertical movement
+  const targetTilt = player.vy * 0.015;
+  player.tilt += (targetTilt - player.tilt) * 0.2;
+  player.tilt = Math.max(-0.3, Math.min(0.3, player.tilt));
+  
   // Distance and difficulty
   distanceTraveled += speed;
   difficulty = 1 + Math.floor(distanceTraveled / 5000);
@@ -647,6 +760,11 @@ function update() {
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const obs = obstacles[i];
     obs.x -= speed;
+    
+    // Moving obstacles bob up and down
+    if (obs.moving) {
+      obs.y = obs.baseY + Math.sin(Date.now() / 400 + obs.moveOffset) * 30;
+    }
     
     if (obs.x + obs.width < 0) {
       obstacles.splice(i, 1);
@@ -780,6 +898,7 @@ function startGame() {
   powerUps = [];
   particles = [];
   floatingTexts = [];
+  shootingStars = [];
   patternCooldown = 0;
   powerUpCooldown = 100;
   player.y = getGroundY() - player.height;
