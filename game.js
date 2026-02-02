@@ -1494,12 +1494,14 @@ function drawTransition(groundOffset, ease) {
     drawCoin(coin);
   });
   
-  // Player rises majestically
-  const flameIntensity = 1.5 + Math.sin(Date.now() / 100) * 0.3;
-  drawCharacter(selectedChar, player.x + player.width/2, player.y + player.bobOffset + player.height/2, 1, 0, flameIntensity);
+  // Player rises majestically (hide once UI overlay shows)
+  if (transitionProgress <= 0.6) {
+    const flameIntensity = 1.5 + Math.sin(Date.now() / 100) * 0.3;
+    drawCharacter(selectedChar, player.x + player.width/2, player.y + player.bobOffset + player.height/2, 1, 0, flameIntensity);
+  }
   
-  // Particle trail behind player
-  if (Math.random() < 0.3) {
+  // Particle trail behind player (stop when UI shows)
+  if (transitionProgress <= 0.6 && Math.random() < 0.3) {
     particles.push({
       x: player.x + player.width/2 + (Math.random() - 0.5) * 20,
       y: player.y + player.height + 10,
@@ -1511,6 +1513,7 @@ function drawTransition(groundOffset, ease) {
     });
   }
   
+  // Only draw remaining particles, they'll fade out
   drawParticles();
   
   // UI
