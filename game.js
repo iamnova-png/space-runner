@@ -24,6 +24,7 @@ let isJumping = false;
 let jumpHeld = false;
 let invincibleUntil = 0;
 let screenShake = 0;
+let damageFlash = 0;
 
 // High score
 let highScore = parseInt(localStorage.getItem('spaceRunnerHighScore')) || 0;
@@ -193,10 +194,10 @@ function drawLives() {
   const startX = canvas.width - 100;
   const y = 55;
   
+  ctx.font = `${heartSize}px Arial`;
   for (let i = 0; i < 3; i++) {
-    ctx.font = `${heartSize}px Arial`;
-    ctx.fillStyle = i < lives ? '#ff4444' : '#333333';
-    ctx.fillText('❤️', startX + i * 30, y);
+    // Use red heart for remaining lives, black heart for lost
+    ctx.fillText(i < lives ? '❤️' : '🖤', startX + i * 30, y);
   }
 }
 
@@ -524,14 +525,16 @@ function takeDamage() {
   }
   
   lives--;
-  screenShake = 10;
-  spawnParticles(player.x + player.width/2, player.y + player.height/2, '#ff4444', 20);
+  screenShake = 15;
+  damageFlash = 10; // red flash frames
+  spawnParticles(player.x + player.width/2, player.y + player.height/2, '#ff4444', 25);
   
   if (lives <= 0) {
     gameOver();
   } else {
     invincibleUntil = Date.now() + 2000;
-    spawnFloatingText(player.x + player.width/2, player.y, '-1 ❤️', '#ff4444');
+    // Big floating text near the hearts
+    spawnFloatingText(canvas.width - 50, 80, '−1', '#ff4444');
   }
 }
 
@@ -680,8 +683,9 @@ function update() {
     spawnPowerUp();
   }
   
-  // Screen shake decay
+  // Screen shake and damage flash decay
   if (screenShake > 0) screenShake *= 0.9;
+  if (damageFlash > 0) damageFlash--;
   
   // Update UI
   scoreEl.textContent = score;
@@ -713,6 +717,12 @@ function draw() {
   powerUps.forEach(drawPowerUp);
   drawPlayer();
   drawFloatingTexts();
+  
+  // Damage flash overlay
+  if (damageFlash > 0) {
+    ctx.fillStyle = `rgba(255, 0, 0, ${damageFlash * 0.03})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
   
   // UI
   drawLives();
@@ -751,6 +761,7 @@ function startGame() {
   jumpHeld = false;
   invincibleUntil = 0;
   screenShake = 0;
+  damageFlash = 0;
   activeEffects = { shield: false, magnet: false, doubleCoin: 0 };
   
   startScreen.classList.add('hidden');
