@@ -781,11 +781,6 @@ function drawCharacter(c, x, y, scale = 1, tilt = 0, flameIntensity = 0.5) {
 }
 
 function drawPlayer() {
-  // Don't draw on main canvas when round complete UI is showing
-  if (roundComplete && document.getElementById('round-complete').classList.contains('show-ui')) {
-    return;
-  }
-  
   const { x, width, height } = player;
   
   // Apply hover bob offset
@@ -1404,9 +1399,9 @@ function gameLoop() {
   update();
   draw();
   
-  // Keep round character animating when UI is showing
-  if (roundComplete && document.getElementById('round-complete').classList.contains('show-ui')) {
-    drawRoundCharacter();
+  // Keep player bobbing when round complete
+  if (roundComplete) {
+    player.bobOffset = Math.sin(Date.now() / 300) * 5;
   }
   
   requestAnimationFrame(gameLoop);
@@ -1493,9 +1488,6 @@ function updateTransition() {
     document.getElementById('round-score').textContent = score;
     document.getElementById('round-coins').textContent = coins;
     document.getElementById('round-distance').textContent = Math.floor(distanceTraveled);
-    
-    // Draw animated character
-    drawRoundCharacter();
   }
   
   // Transition complete

@@ -238,27 +238,19 @@ button:active {
   transform: translateY(0);
 }
 
-.round-content {
-  display: flex;
-  align-items: center;
-  gap: 20px;
+.round-stats {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 15px 30px;
+  border-radius: 12px;
   margin-bottom: 20px;
   opacity: 0;
   transform: translateY(-20px);
   transition: all 0.5s ease-out 0.2s;
 }
 
-#round-complete.show-ui .round-content {
+#round-complete.show-ui .round-stats {
   opacity: 1;
   transform: translateY(0);
-}
-
-#round-char {
-  flex-shrink: 0;
-}
-
-.round-stats {
-  text-align: left;
 }
 
 .round-stats p {
