@@ -396,7 +396,7 @@ function drawLives() {
   const size = 10;
   const spacing = 28;
   const startX = canvas.width - 90;
-  const baseY = 58;
+  const baseY = 32; // Aligned with distance row
   
   for (let i = 0; i < 3; i++) {
     const cx = startX + i * spacing;
@@ -439,11 +439,44 @@ function drawEnvironmentName() {
   ctx.fillText(env.name.toUpperCase(), 20, 55);
 }
 
+function drawCoinIcon() {
+  // Draw a small coin icon that matches in-game coins
+  const x = 30;
+  const y = 66;
+  const scale = 0.7;
+  
+  // Glow
+  ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+  ctx.beginPath();
+  ctx.arc(x, y, 14 * scale, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Main coin
+  ctx.fillStyle = '#ffd700';
+  ctx.beginPath();
+  ctx.arc(x, y, 10 * scale, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Highlight
+  ctx.fillStyle = '#ffec8b';
+  ctx.beginPath();
+  ctx.arc(x - 2 * scale, y - 2 * scale, 3 * scale, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Star
+  ctx.fillStyle = '#daa520';
+  ctx.font = `bold ${9 * scale}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('★', x, y + 1);
+  ctx.textBaseline = 'alphabetic';
+}
+
 function drawActiveEffects() {
-  // Draw power-up status on right side, below hearts
+  // Draw power-up status on right side, aligned with coins row
   const startX = canvas.width - 85;
   let x = startX;
-  const y = 95;
+  const y = 68;
   
   ctx.textAlign = 'center';
   
@@ -1316,7 +1349,7 @@ function update() {
   
   // Update UI
   distanceEl.textContent = Math.floor(distanceTraveled) + 'm';
-  coinsEl.textContent = '🪙 ' + coins;
+  coinsEl.textContent = coins;
 }
 
 function draw() {
@@ -1354,6 +1387,7 @@ function draw() {
   
   // UI
   drawLives();
+  drawCoinIcon();
   drawActiveEffects();
   drawProgressBar();
   drawThrusterButton();
@@ -1410,7 +1444,7 @@ function startGame() {
   patternCooldown = 60; // ~1 second before first obstacle
   
   distanceEl.textContent = '0m';
-  coinsEl.textContent = '🪙 0';
+  coinsEl.textContent = '0';
 }
 
 function startRoundTransition() {
@@ -1519,7 +1553,7 @@ function drawTransition(groundOffset, ease) {
   // UI
   drawLives();
   distanceEl.textContent = Math.floor(distanceTraveled) + 'm';
-  coinsEl.textContent = '🪙 ' + coins;
+  coinsEl.textContent = coins;
 }
 
 function gameOver() {

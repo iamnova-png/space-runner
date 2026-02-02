@@ -53,6 +53,7 @@ html, body {
   font-weight: bold;
   color: #ffd700;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  padding-left: 28px;
 }
 
 #start-screen, #game-over {
