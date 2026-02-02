@@ -202,7 +202,7 @@ function initBgLayers() {
       shape: generateRockShape(size, 8),
       floatOffset: Math.random() * Math.PI * 2,
       rotation: Math.random() * Math.PI * 2,
-      rotationSpeed: (Math.random() - 0.5) * 0.01
+      rotationSpeed: 0.015 + Math.random() * 0.02 // Faster, always spinning
     });
   }
 }
@@ -360,7 +360,7 @@ function drawParallaxLayers() {
     
     ctx.restore();
     
-    rock.x -= speed * 0.45;
+    rock.x -= speed * 0.7; // Faster movement toward player
     if (rock.x + rock.size < 0) {
       rock.x = canvas.width + rock.size + 50;
       rock.y = 120 + Math.random() * 180;
