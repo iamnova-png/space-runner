@@ -1616,15 +1616,36 @@ function drawTransition(groundOffset, ease) {
 function gameOver() {
   gameRunning = false;
   
-  // Update high score
-  if (score > highScore) {
+  // Check for new high score
+  const isNewHighScore = score > highScore;
+  if (isNewHighScore) {
     highScore = score;
     localStorage.setItem('spaceRunnerHighScore', highScore);
   }
   
   finalScoreEl.textContent = score;
   finalCoinsEl.textContent = coins;
+  
+  // Show high score on game over screen
+  const gameOverHighScore = document.getElementById('game-over-high-score');
+  if (gameOverHighScore) {
+    gameOverHighScore.textContent = 'Best: ' + highScore;
+  }
+  
+  // Show/hide new high score celebration
+  const newHighScoreEl = document.getElementById('new-high-score');
+  if (newHighScoreEl) {
+    if (isNewHighScore) {
+      newHighScoreEl.classList.remove('hidden');
+    } else {
+      newHighScoreEl.classList.add('hidden');
+    }
+  }
+  
   gameOverScreen.classList.remove('hidden');
+  
+  // Update start screen high score for next game
+  updateStartScreen();
 }
 
 // Update start screen high score display

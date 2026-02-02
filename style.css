@@ -83,11 +83,16 @@ html, body {
   margin-bottom: 10px;
 }
 
-#high-score {
+#high-score, .high-score-display {
   font-size: 22px;
   color: #ffd700;
   margin: 15px 0;
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+#game-over-high-score {
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 .powerup-legend {
@@ -105,14 +110,17 @@ html, body {
 }
 
 #new-high-score {
-  font-size: 20px;
+  font-size: 24px;
   color: #ffd700;
-  animation: pulse 0.5s ease-in-out infinite alternate;
+  font-weight: bold;
+  margin: 10px 0;
+  animation: celebrate 0.5s ease-in-out infinite alternate;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.4);
 }
 
-@keyframes pulse {
-  from { transform: scale(1); }
-  to { transform: scale(1.1); }
+@keyframes celebrate {
+  from { transform: scale(1); text-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+  to { transform: scale(1.15); text-shadow: 0 0 30px rgba(255, 215, 0, 1), 0 0 50px rgba(255, 215, 0, 0.6); }
 }
 
 button {
