@@ -432,22 +432,34 @@ function drawEnvironmentName() {
 
 function drawActiveEffects() {
   let x = 20;
-  const y = 80;
+  const y = 85;
   
-  ctx.font = '20px Arial';
   if (activeEffects.shield) {
+    ctx.font = '22px Arial';
     ctx.fillText('🛡️', x, y);
-    x += 30;
+    x += 35;
   }
   if (activeEffects.magnet) {
+    // Pulsing magnet icon
+    const pulse = 1 + Math.sin(Date.now() / 150) * 0.15;
+    ctx.font = `${22 * pulse}px Arial`;
     ctx.fillText('🧲', x, y);
-    x += 30;
+    // "MAGNET" label
+    ctx.font = 'bold 10px Arial';
+    ctx.fillStyle = '#ff6600';
+    ctx.fillText('MAGNET', x - 2, y + 15);
+    ctx.fillStyle = '#fff';
+    x += 45;
   }
   if (activeEffects.doubleCoin > Date.now()) {
+    const pulse = 1 + Math.sin(Date.now() / 150) * 0.1;
+    ctx.font = `bold ${18 * pulse}px Arial`;
+    ctx.fillStyle = '#ffd700';
     ctx.fillText('2x', x, y);
-    ctx.font = '12px Arial';
+    ctx.font = '10px Arial';
     const remaining = Math.ceil((activeEffects.doubleCoin - Date.now()) / 1000);
     ctx.fillText(remaining + 's', x + 25, y);
+    ctx.fillStyle = '#fff';
   }
 }
 
@@ -905,8 +917,20 @@ function update() {
       const dy = player.y - coin.y;
       const dist = Math.sqrt(dx*dx + dy*dy);
       if (dist < 200) {
-        coin.x += dx * 0.1;
-        coin.y += dy * 0.1;
+        coin.x += dx * 0.08;
+        coin.y += dy * 0.08;
+        // Visual trail to show magnet pull
+        if (Math.random() < 0.3) {
+          particles.push({
+            x: coin.x + 15,
+            y: coin.y + 15,
+            vx: dx * 0.02,
+            vy: dy * 0.02,
+            size: 3,
+            color: '#ff6600',
+            life: 0.5
+          });
+        }
       }
     });
   }
