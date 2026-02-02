@@ -137,37 +137,68 @@ function initStars() {
 }
 initStars();
 
+// Generate organic rock shape points
+function generateRockShape(size, pointCount) {
+  const points = [];
+  for (let i = 0; i < pointCount; i++) {
+    const angle = (i / pointCount) * Math.PI * 2;
+    const radius = size * (0.7 + Math.random() * 0.5);
+    points.push({
+      x: Math.cos(angle) * radius,
+      y: Math.sin(angle) * radius
+    });
+  }
+  return points;
+}
+
 // Initialize parallax background layers
 function initBgLayers() {
   bgLayers = { far: [], mid: [], near: [] };
   
-  // Far layer - distant mountains (slow, large)
-  for (let i = 0; i < 4; i++) {
+  // Far layer - distant rock formations (slow, large)
+  for (let i = 0; i < 3; i++) {
+    const width = 250 + Math.random() * 150;
+    const height = 60 + Math.random() * 50;
+    // Pre-generate mountain peaks
+    const peakCount = 3 + Math.floor(Math.random() * 2);
+    const peaks = [];
+    for (let p = 0; p < peakCount; p++) {
+      peaks.push({
+        xOffset: (p + 0.3 + Math.random() * 0.4) * (width / peakCount),
+        height: height * (0.5 + Math.random() * 0.5)
+      });
+    }
     bgLayers.far.push({
-      x: i * 400 + Math.random() * 100,
-      width: 300 + Math.random() * 200,
-      height: 80 + Math.random() * 60,
-      peaks: Math.floor(2 + Math.random() * 3)
+      x: i * 500 + Math.random() * 100,
+      width,
+      height,
+      peaks
     });
   }
   
-  // Mid layer - rock formations
-  for (let i = 0; i < 6; i++) {
+  // Mid layer - rock spires
+  for (let i = 0; i < 4; i++) {
+    const height = 50 + Math.random() * 60;
     bgLayers.mid.push({
-      x: i * 300 + Math.random() * 100,
-      width: 60 + Math.random() * 80,
-      height: 40 + Math.random() * 50,
-      type: Math.random() < 0.5 ? 'pillar' : 'boulder'
+      x: i * 400 + Math.random() * 150,
+      width: 40 + Math.random() * 40,
+      height,
+      taperTop: 0.2 + Math.random() * 0.3,
+      lean: (Math.random() - 0.5) * 0.2
     });
   }
   
-  // Near layer - floating rocks/debris
-  for (let i = 0; i < 5; i++) {
+  // Near layer - floating asteroids (fewer, more organic)
+  for (let i = 0; i < 3; i++) {
+    const size = 20 + Math.random() * 30;
     bgLayers.near.push({
-      x: i * 350 + Math.random() * 150,
-      y: 100 + Math.random() * 200,
-      size: 15 + Math.random() * 25,
-      floatOffset: Math.random() * Math.PI * 2
+      x: i * 450 + Math.random() * 200,
+      y: 120 + Math.random() * 180,
+      size,
+      shape: generateRockShape(size, 8),
+      floatOffset: Math.random() * Math.PI * 2,
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.01
     });
   }
 }
@@ -248,92 +279,87 @@ function drawEnvironmentParticles() {
 
 function drawParallaxLayers() {
   const groundY = getGroundY();
-  const env = getEnv();
   
-  // Far layer - distant mountains (slowest, 0.2x speed)
+  // Far layer - distant rock formations (slowest, 0.15x speed)
   const farColor = currentEnvIndex === 0 ? '#2a2545' : 
-                   currentEnvIndex === 1 ? '#4a2020' : '#1a0a30';
+                   currentEnvIndex === 1 ? '#3a2020' : '#1a0a30';
   ctx.fillStyle = farColor;
   
   bgLayers.far.forEach(m => {
     ctx.beginPath();
     ctx.moveTo(m.x, groundY);
     
-    const peakWidth = m.width / m.peaks;
-    for (let i = 0; i < m.peaks; i++) {
-      const px = m.x + peakWidth * (i + 0.5);
-      const peakHeight = m.height * (0.6 + Math.random() * 0.4);
-      ctx.lineTo(px, groundY - peakHeight);
-    }
+    // Use pre-generated peaks
+    m.peaks.forEach(peak => {
+      ctx.lineTo(m.x + peak.xOffset, groundY - peak.height);
+    });
     
     ctx.lineTo(m.x + m.width, groundY);
     ctx.closePath();
     ctx.fill();
     
-    m.x -= speed * 0.15;
+    m.x -= speed * 0.12;
     if (m.x + m.width < 0) {
-      m.x = canvas.width + Math.random() * 100;
-      m.width = 300 + Math.random() * 200;
-      m.height = 80 + Math.random() * 60;
+      m.x = canvas.width + 50;
     }
   });
   
-  // Mid layer - rock formations (0.4x speed)
+  // Mid layer - rock spires (0.3x speed)
   const midColor = currentEnvIndex === 0 ? '#3a3560' : 
-                   currentEnvIndex === 1 ? '#5a3030' : '#2a1545';
+                   currentEnvIndex === 1 ? '#4a2828' : '#2a1545';
   ctx.fillStyle = midColor;
   
   bgLayers.mid.forEach(r => {
-    if (r.type === 'pillar') {
-      // Tall rock pillar
-      ctx.beginPath();
-      ctx.moveTo(r.x, groundY);
-      ctx.lineTo(r.x + r.width * 0.2, groundY - r.height);
-      ctx.lineTo(r.x + r.width * 0.5, groundY - r.height - 15);
-      ctx.lineTo(r.x + r.width * 0.8, groundY - r.height);
-      ctx.lineTo(r.x + r.width, groundY);
-      ctx.closePath();
-      ctx.fill();
-    } else {
-      // Boulder
-      ctx.beginPath();
-      ctx.arc(r.x + r.width/2, groundY - r.height/2, r.height/2, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    ctx.beginPath();
+    ctx.moveTo(r.x, groundY);
+    ctx.lineTo(r.x + r.width * r.taperTop + r.lean * r.height, groundY - r.height);
+    ctx.lineTo(r.x + r.width * (1 - r.taperTop) + r.lean * r.height, groundY - r.height);
+    ctx.lineTo(r.x + r.width, groundY);
+    ctx.closePath();
+    ctx.fill();
     
-    r.x -= speed * 0.35;
+    r.x -= speed * 0.25;
     if (r.x + r.width < 0) {
-      r.x = canvas.width + Math.random() * 150;
-      r.width = 60 + Math.random() * 80;
-      r.height = 40 + Math.random() * 50;
+      r.x = canvas.width + 100;
     }
   });
   
-  // Near layer - floating rocks (0.6x speed)
-  const nearColor = currentEnvIndex === 0 ? '#4a4575' : 
-                    currentEnvIndex === 1 ? '#6a4545' : '#3a2555';
-  ctx.fillStyle = nearColor;
+  // Near layer - floating asteroids (0.5x speed)
+  const nearColor = currentEnvIndex === 0 ? '#4a4570' : 
+                    currentEnvIndex === 1 ? '#5a4040' : '#3a2050';
+  const nearDark = currentEnvIndex === 0 ? '#353055' : 
+                   currentEnvIndex === 1 ? '#402828' : '#251535';
   
   bgLayers.near.forEach(rock => {
-    const floatY = rock.y + Math.sin(Date.now() / 800 + rock.floatOffset) * 8;
+    const floatY = rock.y + Math.sin(Date.now() / 1000 + rock.floatOffset) * 6;
+    rock.rotation += rock.rotationSpeed;
     
-    ctx.beginPath();
-    ctx.arc(rock.x, floatY, rock.size, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.save();
+    ctx.translate(rock.x, floatY);
+    ctx.rotate(rock.rotation);
     
-    // Crater detail
-    ctx.fillStyle = currentEnvIndex === 0 ? '#3a3560' : 
-                    currentEnvIndex === 1 ? '#5a3535' : '#2a1545';
-    ctx.beginPath();
-    ctx.arc(rock.x - rock.size * 0.2, floatY - rock.size * 0.2, rock.size * 0.25, 0, Math.PI * 2);
-    ctx.fill();
+    // Draw organic rock shape
     ctx.fillStyle = nearColor;
+    ctx.beginPath();
+    ctx.moveTo(rock.shape[0].x, rock.shape[0].y);
+    for (let i = 1; i < rock.shape.length; i++) {
+      ctx.lineTo(rock.shape[i].x, rock.shape[i].y);
+    }
+    ctx.closePath();
+    ctx.fill();
     
-    rock.x -= speed * 0.55;
+    // Crater/shadow detail
+    ctx.fillStyle = nearDark;
+    ctx.beginPath();
+    ctx.arc(-rock.size * 0.15, -rock.size * 0.1, rock.size * 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.restore();
+    
+    rock.x -= speed * 0.45;
     if (rock.x + rock.size < 0) {
-      rock.x = canvas.width + rock.size + Math.random() * 100;
-      rock.y = 100 + Math.random() * 200;
-      rock.size = 15 + Math.random() * 25;
+      rock.x = canvas.width + rock.size + 50;
+      rock.y = 120 + Math.random() * 180;
     }
   });
 }
