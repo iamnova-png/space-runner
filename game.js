@@ -545,26 +545,20 @@ function drawProgressBar() {
   const iconX = barX + barWidth * progress;
   const iconY = barY;
   
-  // Circle marker on the line
-  ctx.fillStyle = '#fff';
+  // Circle/dot marker on the line
+  ctx.fillStyle = '#44ff88';
   ctx.shadowColor = '#44ff88';
-  ctx.shadowBlur = 10;
+  ctx.shadowBlur = 12;
   ctx.beginPath();
-  ctx.arc(iconX, iconY, 12, 0, Math.PI * 2);
+  ctx.arc(iconX, iconY, 14, 0, Math.PI * 2);
   ctx.fill();
   ctx.shadowBlur = 0;
   
-  // Inner circle
-  ctx.fillStyle = '#223';
-  ctx.beginPath();
-  ctx.arc(iconX, iconY, 9, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Draw mini character on top of circle, slightly rotated
+  // Draw character centered OVER the circle, slightly rotated
   ctx.save();
-  ctx.translate(iconX, iconY - 18);
-  ctx.rotate(0.15); // Slight tilt
-  const s = 0.7;
+  ctx.translate(iconX, iconY);
+  ctx.rotate(0.2); // Slight tilt
+  const s = 0.65;
   
   if (selectedChar === 'spacekid') {
     // Mini space kid
