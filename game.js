@@ -1,6 +1,6 @@
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-const scoreEl = document.getElementById('score');
+const distanceEl = document.getElementById('distance');
 const coinsEl = document.getElementById('coins');
 const startScreen = document.getElementById('start-screen');
 const gameOverScreen = document.getElementById('game-over');
@@ -440,36 +440,37 @@ function drawEnvironmentName() {
 }
 
 function drawActiveEffects() {
-  let x = 20;
-  const y = 85;
+  // Draw power-up status on right side, below hearts
+  const startX = canvas.width - 85;
+  let x = startX;
+  const y = 95;
+  
+  ctx.textAlign = 'center';
   
   if (activeEffects.shield) {
-    ctx.font = '22px Arial';
+    ctx.font = '20px Arial';
     ctx.fillText('🛡️', x, y);
-    x += 35;
+    x += 30;
   }
   if (activeEffects.magnet) {
-    // Pulsing magnet icon
     const pulse = 1 + Math.sin(Date.now() / 150) * 0.15;
-    ctx.font = `${22 * pulse}px Arial`;
+    ctx.font = `${20 * pulse}px Arial`;
     ctx.fillText('🧲', x, y);
-    // "MAGNET" label
-    ctx.font = 'bold 10px Arial';
-    ctx.fillStyle = '#ff6600';
-    ctx.fillText('MAGNET', x - 2, y + 15);
-    ctx.fillStyle = '#fff';
-    x += 45;
+    x += 30;
   }
   if (activeEffects.doubleCoin > Date.now()) {
     const pulse = 1 + Math.sin(Date.now() / 150) * 0.1;
-    ctx.font = `bold ${18 * pulse}px Arial`;
+    ctx.font = `bold ${16 * pulse}px Arial`;
     ctx.fillStyle = '#ffd700';
     ctx.fillText('2x', x, y);
+    // Timer below
     ctx.font = '10px Arial';
     const remaining = Math.ceil((activeEffects.doubleCoin - Date.now()) / 1000);
-    ctx.fillText(remaining + 's', x + 25, y);
+    ctx.fillText(remaining + 's', x, y + 14);
     ctx.fillStyle = '#fff';
   }
+  
+  ctx.textAlign = 'left';
 }
 
 function drawProgressBar() {
@@ -1314,7 +1315,7 @@ function update() {
   if (damageFlash > 0) damageFlash--;
   
   // Update UI
-  scoreEl.textContent = score;
+  distanceEl.textContent = Math.floor(distanceTraveled) + 'm';
   coinsEl.textContent = '🪙 ' + coins;
 }
 
@@ -1353,7 +1354,6 @@ function draw() {
   
   // UI
   drawLives();
-  drawEnvironmentName();
   drawActiveEffects();
   drawProgressBar();
   drawThrusterButton();
@@ -1409,7 +1409,7 @@ function startGame() {
   // Brief grace period at start (no invincibility, just delayed obstacles)
   patternCooldown = 60; // ~1 second before first obstacle
   
-  scoreEl.textContent = '0';
+  distanceEl.textContent = '0m';
   coinsEl.textContent = '🪙 0';
 }
 
@@ -1518,7 +1518,7 @@ function drawTransition(groundOffset, ease) {
   
   // UI
   drawLives();
-  scoreEl.textContent = score;
+  distanceEl.textContent = Math.floor(distanceTraveled) + 'm';
   coinsEl.textContent = '🪙 ' + coins;
 }
 
