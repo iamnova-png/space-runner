@@ -547,8 +547,8 @@ function drawProgressBar() {
   
   // Draw mini character based on selected character
   ctx.save();
-  ctx.translate(iconX, iconY);
-  const s = 0.35; // Mini scale
+  ctx.translate(iconX, iconY - 8);
+  const s = 0.8; // Bigger scale
   
   if (selectedChar === 'spacekid') {
     // Mini space kid
