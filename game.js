@@ -510,10 +510,9 @@ function drawProgressBar() {
   if (!gameRunning || roundComplete) return;
   
   const barHeight = 6;
-  const barY = canvas.height - 50;
-  const padding = 60;
-  const barWidth = canvas.width - padding * 2;
-  const barX = padding;
+  const barY = canvas.height - 30;
+  const barX = 50;
+  const barWidth = canvas.width - 150; // Leave room for thruster button
   
   // Progress (0 to 1)
   const progress = Math.min(distanceTraveled / ROUND_1_DISTANCE, 1);
@@ -572,9 +571,9 @@ function drawProgressBar() {
 function drawThrusterButton() {
   if (!gameRunning || roundComplete) return;
   
-  const btnSize = 70;
-  const btnX = canvas.width - btnSize - 20;
-  const btnY = canvas.height - btnSize - 70;
+  const btnSize = 60;
+  const btnX = canvas.width - btnSize - 15;
+  const btnY = canvas.height - btnSize - 5; // In line with progress bar at bottom
   const centerX = btnX + btnSize / 2;
   const centerY = btnY + btnSize / 2;
   
