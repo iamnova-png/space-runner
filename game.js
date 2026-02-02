@@ -543,22 +543,67 @@ function drawProgressBar() {
   
   // Character icon on progress bar
   const iconX = barX + barWidth * progress;
-  const iconY = barY + barHeight / 2;
+  const iconY = barY - 5;
   
-  // Small character dot with glow
-  ctx.shadowColor = '#44ff88';
-  ctx.shadowBlur = 8;
-  ctx.fillStyle = '#fff';
-  ctx.beginPath();
-  ctx.arc(iconX, iconY, 8, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
+  // Draw mini character based on selected character
+  ctx.save();
+  ctx.translate(iconX, iconY);
+  const s = 0.35; // Mini scale
   
-  // Mini character face inside
-  ctx.fillStyle = '#ffcc99';
-  ctx.beginPath();
-  ctx.arc(iconX, iconY, 5, 0, Math.PI * 2);
-  ctx.fill();
+  if (selectedChar === 'spacekid') {
+    // Mini space kid
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.roundRect(-8*s, -10*s, 16*s, 14*s, 3*s);
+    ctx.fill();
+    ctx.fillStyle = '#5588ff';
+    ctx.beginPath();
+    ctx.arc(0, -10*s, 7*s, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffcc99';
+    ctx.beginPath();
+    ctx.arc(0, -10*s, 4*s, 0, Math.PI * 2);
+    ctx.fill();
+    // Jetpack flame
+    ctx.fillStyle = '#ff4400';
+    ctx.beginPath();
+    ctx.moveTo(-10*s, 2*s);
+    ctx.lineTo(-12*s, 10*s);
+    ctx.lineTo(-7*s, 2*s);
+    ctx.fill();
+  } else if (selectedChar === 'hovercraft') {
+    // Mini hovercraft
+    ctx.fillStyle = '#ff6644';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 12*s, 5*s, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#44ddff';
+    ctx.beginPath();
+    ctx.ellipse(0, -6*s, 7*s, 5*s, 0, Math.PI, 0);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(0,255,255,0.5)';
+    ctx.beginPath();
+    ctx.ellipse(0, 5*s, 10*s, 3*s, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (selectedChar === 'alien') {
+    // Mini UFO
+    ctx.fillStyle = '#9966cc';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 12*s, 4*s, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#88ff88';
+    ctx.beginPath();
+    ctx.ellipse(0, -8*s, 5*s, 4*s, 0, Math.PI, 0);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(136,255,136,0.4)';
+    ctx.beginPath();
+    ctx.moveTo(-6*s, 3*s);
+    ctx.lineTo(-8*s, 12*s);
+    ctx.lineTo(8*s, 12*s);
+    ctx.lineTo(6*s, 3*s);
+    ctx.fill();
+  }
+  ctx.restore();
   
   // Distance text
   ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
