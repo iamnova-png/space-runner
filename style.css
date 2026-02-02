@@ -239,18 +239,17 @@ button:active {
 }
 
 .round-stats {
-  background: rgba(0, 0, 0, 0.5);
-  padding: 15px 30px;
-  border-radius: 12px;
-  margin-bottom: 20px;
+  position: absolute;
+  right: 30%;
+  top: 50%;
+  transform: translateY(-50%) translateX(80px);
+  text-align: left;
   opacity: 0;
-  transform: translateY(-20px);
-  transition: all 0.5s ease-out 0.2s;
+  transition: opacity 0.5s ease-out 0.2s;
 }
 
 #round-complete.show-ui .round-stats {
   opacity: 1;
-  transform: translateY(0);
 }
 
 .round-stats p {
