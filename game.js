@@ -733,26 +733,48 @@ function endJump() {
   }
 }
 
-// Level patterns
-const patterns = [
-  { type: 'single_low', generate: (x) => [{ x, size: 45 }] },
-  { type: 'single_med', generate: (x) => [{ x, size: 55 }] },
-  { type: 'double', generate: (x) => [{ x, size: 40 }, { x: x + 200, size: 45 }] },
-  { type: 'coins', generate: (x) => [] },
-  { type: 'low_high', generate: (x) => [{ x, size: 35 }, { x: x + 180, size: 60 }] }
-];
+// Dynamic obstacle generation (no fixed patterns)
+function generateObstacles(startX) {
+  const results = [];
+  const groundY = getGroundY();
+  
+  // Decide how many obstacles (weighted toward singles)
+  const roll = Math.random();
+  let count;
+  if (roll < 0.6) count = 1;        // 60% single
+  else if (roll < 0.85) count = 2;  // 25% double
+  else count = 0;                    // 15% coins only
+  
+  let x = startX;
+  for (let i = 0; i < count; i++) {
+    // Random size (smaller = easier to jump)
+    const size = 35 + Math.random() * 30; // 35-65
+    
+    results.push({ x, size });
+    
+    // Gap to next obstacle (if any) - always jumpable
+    if (i < count - 1) {
+      // Minimum gap based on size - bigger obstacles need more space
+      const minGap = 180 + size * 1.5;
+      const maxGap = minGap + 100;
+      x += minGap + Math.random() * (maxGap - minGap);
+    }
+  }
+  
+  return results;
+}
 
 function spawnPattern() {
   const groundY = getGroundY();
   const startX = canvas.width + 50;
   
-  const availablePatterns = difficulty < 3 ? patterns.slice(0, 3) : patterns;
-  const pattern = availablePatterns[Math.floor(Math.random() * availablePatterns.length)];
-  const obstacleData = pattern.generate(startX);
+  // Generate dynamic obstacles
+  const obstacleData = generateObstacles(startX);
+  const isCoinsOnly = obstacleData.length === 0;
   
   obstacleData.forEach(obs => {
-    const isSatellite = Math.random() < 0.25 && difficulty >= 2;
-    const isMoving = Math.random() < 0.2 && difficulty >= 3;
+    const isSatellite = Math.random() < 0.2 && difficulty >= 2;
+    const isMoving = Math.random() < 0.15 && difficulty >= 3;
     
     obstacles.push({
       x: obs.x,
@@ -766,23 +788,24 @@ function spawnPattern() {
     });
   });
   
-  // Coins
-  if (pattern.type === 'coins' || Math.random() < 0.6) {
-    const coinCount = pattern.type === 'coins' ? 5 : 2;
-    const coinStartX = pattern.type === 'coins' ? startX : startX + 100;
-    const coinY = groundY - 80 - Math.random() * 100;
+  // Coins - more on coin-only spawns, sometimes on regular spawns
+  if (isCoinsOnly || Math.random() < 0.5) {
+    const coinCount = isCoinsOnly ? 4 + Math.floor(Math.random() * 3) : 1 + Math.floor(Math.random() * 2);
+    const coinStartX = isCoinsOnly ? startX : startX + 80 + Math.random() * 50;
+    const coinY = groundY - 100 - Math.random() * 80;
     
     for (let i = 0; i < coinCount; i++) {
       coinObjects.push({
-        x: coinStartX + i * 50,
-        y: pattern.type === 'coins' ? coinY : groundY - 120 - Math.random() * 60,
+        x: coinStartX + i * 45,
+        y: isCoinsOnly ? coinY + Math.sin(i * 0.8) * 20 : groundY - 110 - Math.random() * 50,
         width: 30,
         height: 30
       });
     }
   }
   
-  const baseGap = minObstacleGap + Math.random() * 150;
+  // Variable gap before next spawn
+  const baseGap = minObstacleGap + Math.random() * 200;
   patternCooldown = baseGap / speed;
 }
 
