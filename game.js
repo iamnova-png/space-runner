@@ -672,8 +672,8 @@ function drawObstacle(obs) {
   const cx = obs.x + obs.width/2;
   const cy = obs.y + obs.height/2;
   
-  // Update rotation
-  obs.rotation += obs.rotationSpeed;
+  // Update rotation (spin toward player = clockwise = negative)
+  obs.rotation -= obs.rotationSpeed;
   
   if (obs.type === 'satellite') {
     // Spinning satellite
