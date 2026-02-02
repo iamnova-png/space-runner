@@ -558,7 +558,7 @@ function drawProgressBar() {
   ctx.save();
   ctx.translate(iconX, iconY);
   ctx.rotate(0.2); // Slight tilt
-  const s = 0.65;
+  const s = 0.9; // Bigger character
   
   if (selectedChar === 'spacekid') {
     // Mini space kid
