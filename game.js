@@ -612,25 +612,31 @@ function update() {
     });
   }
   
-  // Update obstacles
-  obstacles.forEach((obs, i) => {
+  // Update obstacles (iterate backwards for safe splicing)
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const obs = obstacles[i];
     obs.x -= speed;
+    
     if (obs.x + obs.width < 0) {
       obstacles.splice(i, 1);
       score += 10;
+      continue;
     }
     
     if (checkCollision(player, obs)) {
       takeDamage();
       obstacles.splice(i, 1);
     }
-  });
+  }
   
-  // Update coins
-  coinObjects.forEach((coin, i) => {
+  // Update coins (iterate backwards for safe splicing)
+  for (let i = coinObjects.length - 1; i >= 0; i--) {
+    const coin = coinObjects[i];
     coin.x -= speed;
+    
     if (coin.x + coin.width < 0) {
       coinObjects.splice(i, 1);
+      continue;
     }
     
     if (checkCollision(player, coin, 0)) {
@@ -643,20 +649,23 @@ function update() {
         spawnFloatingText(coin.x + 15, coin.y, '+' + (50 * value), '#ffd700');
       }
     }
-  });
+  }
   
-  // Update power-ups
-  powerUps.forEach((pu, i) => {
+  // Update power-ups (iterate backwards for safe splicing)
+  for (let i = powerUps.length - 1; i >= 0; i--) {
+    const pu = powerUps[i];
     pu.x -= speed;
+    
     if (pu.x + pu.width < 0) {
       powerUps.splice(i, 1);
+      continue;
     }
     
     if (checkCollision(player, pu, 0)) {
       collectPowerUp(pu);
       powerUps.splice(i, 1);
     }
-  });
+  }
   
   // Spawn patterns
   patternCooldown--;
@@ -745,8 +754,10 @@ function startGame() {
   activeEffects = { shield: false, magnet: false, doubleCoin: 0 };
   
   startScreen.classList.add('hidden');
-  gameOverScreen.classList.remove('hidden');
   gameOverScreen.classList.add('hidden');
+  
+  // Brief grace period at start (no invincibility, just delayed obstacles)
+  patternCooldown = 60; // ~1 second before first obstacle
   
   scoreEl.textContent = '0';
   coinsEl.textContent = '🪙 0';
