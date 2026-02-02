@@ -830,7 +830,15 @@ function spawnFloatingText(x, y, text, color) {
 // Jump system
 function startJump() {
   if (player.grounded && gameRunning) {
-    player.vy = jumpForce;
+    // Character-specific jump force
+    let charJumpForce = jumpForce;
+    if (selectedChar === 'alien') {
+      charJumpForce = jumpForce * 0.85; // Softer initial push, but floats longer
+    } else if (selectedChar === 'hovercraft') {
+      charJumpForce = jumpForce * 0.95;
+    }
+    
+    player.vy = charJumpForce;
     player.grounded = false;
     isJumping = true;
     jumpHeld = true;
@@ -994,16 +1002,33 @@ function update() {
   
   const groundY = getGroundY();
   
-  // Variable jump
+  // Character-specific physics
+  let charGravity = gravity;
+  let charJumpDecay = 0.4;
+  
+  if (selectedChar === 'alien') {
+    charGravity = gravity * 0.6;  // Floatier
+    charJumpDecay = 0.25;         // Smoother ascent
+  } else if (selectedChar === 'hovercraft') {
+    charGravity = gravity * 0.85; // Slightly floaty
+    charJumpDecay = 0.35;
+  }
+  
+  // Variable jump with character-specific feel
   if (jumpHeld && isJumping && player.vy < 0) {
     const holdTime = Date.now() - jumpStartTime;
     if (holdTime < maxJumpTime) {
-      player.vy += gravity * 0.4;
+      player.vy += charGravity * charJumpDecay;
     } else {
-      player.vy += gravity;
+      player.vy += charGravity;
     }
   } else {
-    player.vy += gravity;
+    player.vy += charGravity;
+  }
+  
+  // Smooth velocity for alien (dampen sudden changes)
+  if (selectedChar === 'alien') {
+    player.vy *= 0.98; // Gentle air resistance
   }
   
   player.y += player.vy;
@@ -1032,10 +1057,10 @@ function update() {
   let targetTilt, tiltSpeed, maxTilt;
   
   if (selectedChar === 'alien') {
-    // UFO leans FORWARD when rising (into the movement), back when falling
-    targetTilt = player.vy * -0.035; // Inverted - lean forward on ascent
-    tiltSpeed = 0.12; // Slower response (floaty)
-    maxTilt = 0.45; // Can tilt more
+    // UFO leans FORWARD when rising - smooth and gradual
+    targetTilt = player.vy * -0.025; // Gentler tilt
+    tiltSpeed = 0.06; // Much slower response (silky smooth)
+    maxTilt = 0.35; // Not too extreme
   } else if (selectedChar === 'hovercraft') {
     // Hovercraft banks smoothly, stays more level
     targetTilt = player.vy * 0.012;
