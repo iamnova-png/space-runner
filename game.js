@@ -472,6 +472,107 @@ function drawActiveEffects() {
   }
 }
 
+function drawProgressBar() {
+  if (!gameRunning || roundComplete) return;
+  
+  const barHeight = 6;
+  const barY = canvas.height - 50;
+  const padding = 60;
+  const barWidth = canvas.width - padding * 2;
+  const barX = padding;
+  
+  // Progress (0 to 1)
+  const progress = Math.min(distanceTraveled / ROUND_1_DISTANCE, 1);
+  
+  // Track background
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+  ctx.beginPath();
+  ctx.roundRect(barX, barY, barWidth, barHeight, 3);
+  ctx.fill();
+  
+  // Progress fill with gradient
+  const gradient = ctx.createLinearGradient(barX, 0, barX + barWidth, 0);
+  gradient.addColorStop(0, '#4488ff');
+  gradient.addColorStop(1, '#44ff88');
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.roundRect(barX, barY, barWidth * progress, barHeight, 3);
+  ctx.fill();
+  
+  // Start marker
+  ctx.fillStyle = '#fff';
+  ctx.font = '14px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('🚀', barX, barY - 8);
+  
+  // End marker (flag/goal)
+  ctx.fillText('🏁', barX + barWidth, barY - 8);
+  
+  // Character icon on progress bar
+  const iconX = barX + barWidth * progress;
+  const iconY = barY + barHeight / 2;
+  
+  // Small character dot with glow
+  ctx.shadowColor = '#44ff88';
+  ctx.shadowBlur = 8;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(iconX, iconY, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  
+  // Mini character face inside
+  ctx.fillStyle = '#ffcc99';
+  ctx.beginPath();
+  ctx.arc(iconX, iconY, 5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Distance text
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.font = '12px Arial';
+  ctx.fillText(`${Math.floor(distanceTraveled)}m`, iconX, barY + 22);
+  
+  ctx.textAlign = 'left';
+}
+
+function drawThrusterButton() {
+  if (!gameRunning || roundComplete) return;
+  
+  const btnSize = 70;
+  const btnX = canvas.width - btnSize - 20;
+  const btnY = canvas.height - btnSize - 70;
+  const centerX = btnX + btnSize / 2;
+  const centerY = btnY + btnSize / 2;
+  
+  // Button glow when pressed
+  if (jumpHeld) {
+    ctx.shadowColor = '#ff6600';
+    ctx.shadowBlur = 25;
+  }
+  
+  // Button background
+  ctx.fillStyle = jumpHeld ? 'rgba(255, 100, 0, 0.5)' : 'rgba(255, 255, 255, 0.15)';
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, btnSize / 2, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Button border
+  ctx.strokeStyle = jumpHeld ? '#ff8844' : 'rgba(255, 255, 255, 0.3)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  
+  ctx.shadowBlur = 0;
+  
+  // Flame icon
+  ctx.font = jumpHeld ? '32px Arial' : '28px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🔥', centerX, centerY);
+  
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+}
+
 function drawCharacter(c, x, y, scale = 1, tilt = 0, flameIntensity = 0.5) {
   ctx.save();
   ctx.translate(x, y);
@@ -1254,6 +1355,8 @@ function draw() {
   drawLives();
   drawEnvironmentName();
   drawActiveEffects();
+  drawProgressBar();
+  drawThrusterButton();
   
   ctx.restore();
 }
