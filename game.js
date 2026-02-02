@@ -13,9 +13,14 @@ const finalCoinsEl = document.getElementById('final-coins');
 let gameRunning = false;
 let score = 0;
 let coins = 0;
-let speed = 5;
-let gravity = 0.6;
-let jumpForce = -12;
+let baseSpeed = 6;
+let speed = baseSpeed;
+let gravity = 0.8;
+let jumpForce = -14;
+let maxJumpTime = 180; // ms to hold for max jump
+let jumpStartTime = 0;
+let isJumping = false;
+let jumpHeld = false;
 
 // Player
 const player = {
@@ -24,8 +29,7 @@ const player = {
   width: 40,
   height: 50,
   vy: 0,
-  grounded: false,
-  color: '#ff6b9d'
+  grounded: false
 };
 
 // Game objects
@@ -34,12 +38,24 @@ let coinObjects = [];
 let stars = [];
 let particles = [];
 
+// Level generation
+let lastObstacleX = 0;
+let minObstacleGap = 300; // Minimum pixels between obstacles
+let patternCooldown = 0;
+let difficulty = 1;
+let distanceTraveled = 0;
+
 // Resize canvas
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  player.y = canvas.height - 120 - player.height;
+  player.y = getGroundY() - player.height;
 }
+
+function getGroundY() {
+  return canvas.height - 100;
+}
+
 resize();
 window.addEventListener('resize', resize);
 
@@ -66,7 +82,7 @@ function drawStars() {
     ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
     ctx.fill();
     
-    star.x -= star.speed * (speed / 5);
+    star.x -= star.speed * (speed / baseSpeed);
     if (star.x < 0) {
       star.x = canvas.width;
       star.y = Math.random() * canvas.height;
@@ -76,7 +92,7 @@ function drawStars() {
 }
 
 function drawGround() {
-  const groundY = canvas.height - 100;
+  const groundY = getGroundY();
   
   // Planet surface gradient
   const gradient = ctx.createLinearGradient(0, groundY, 0, canvas.height);
@@ -141,19 +157,20 @@ function drawPlayer() {
   ctx.fillStyle = '#ffaa00';
   ctx.fillRect(x - 6, y + 30, 6, 8);
   
-  // Jetpack flame when jumping
-  if (!player.grounded) {
+  // Jetpack flame when jumping/holding
+  if (!player.grounded || jumpHeld) {
+    const flameIntensity = jumpHeld ? 1.5 : 1;
     ctx.fillStyle = '#ff4400';
     ctx.beginPath();
     ctx.moveTo(x - 5, y + 50);
-    ctx.lineTo(x - 8, y + 65 + Math.random() * 10);
+    ctx.lineTo(x - 8, y + 50 + (15 + Math.random() * 10) * flameIntensity);
     ctx.lineTo(x + 1, y + 50);
     ctx.fill();
     
     ctx.fillStyle = '#ffff00';
     ctx.beginPath();
     ctx.moveTo(x - 4, y + 50);
-    ctx.lineTo(x - 5, y + 58 + Math.random() * 5);
+    ctx.lineTo(x - 5, y + 50 + (8 + Math.random() * 5) * flameIntensity);
     ctx.lineTo(x - 1, y + 50);
     ctx.fill();
   }
@@ -169,10 +186,10 @@ function drawObstacle(obs) {
   // Craters
   ctx.fillStyle = '#6b5344';
   ctx.beginPath();
-  ctx.arc(obs.x + obs.width/3, obs.y + obs.height/3, 6, 0, Math.PI * 2);
+  ctx.arc(obs.x + obs.width/3, obs.y + obs.height/3, obs.width * 0.15, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.arc(obs.x + obs.width * 0.6, obs.y + obs.height * 0.6, 4, 0, Math.PI * 2);
+  ctx.arc(obs.x + obs.width * 0.6, obs.y + obs.height * 0.6, obs.width * 0.1, 0, Math.PI * 2);
   ctx.fill();
 }
 
@@ -235,57 +252,146 @@ function spawnParticles(x, y, color, count) {
   }
 }
 
-// Game logic
-function jump() {
+// Variable jump system
+function startJump() {
   if (player.grounded && gameRunning) {
     player.vy = jumpForce;
     player.grounded = false;
+    isJumping = true;
+    jumpHeld = true;
+    jumpStartTime = Date.now();
   }
 }
 
-function spawnObstacle() {
-  const minHeight = 40;
-  const maxHeight = 70;
-  const height = Math.random() * (maxHeight - minHeight) + minHeight;
-  
-  obstacles.push({
-    x: canvas.width,
-    y: canvas.height - 100 - height,
-    width: height,
-    height: height
-  });
+function endJump() {
+  jumpHeld = false;
+  // Cut the jump short if released early and still going up
+  if (isJumping && player.vy < 0) {
+    player.vy *= 0.5; // Reduce upward velocity
+  }
 }
 
-function spawnCoin() {
-  const y = canvas.height - 100 - Math.random() * 150 - 50;
-  coinObjects.push({
-    x: canvas.width,
-    y: y,
-    width: 30,
-    height: 30
+// Level generation patterns
+const patterns = [
+  // Single low obstacle
+  { type: 'single_low', generate: (x) => {
+    return [{ x, size: 45 }];
+  }},
+  // Single medium obstacle
+  { type: 'single_med', generate: (x) => {
+    return [{ x, size: 55 }];
+  }},
+  // Double obstacles with gap
+  { type: 'double', generate: (x) => {
+    return [
+      { x, size: 40 },
+      { x: x + 200, size: 45 }
+    ];
+  }},
+  // Coin trail (no obstacles)
+  { type: 'coins', generate: (x) => {
+    return []; // Just coins, handled separately
+  }},
+  // Low-high combo
+  { type: 'low_high', generate: (x) => {
+    return [
+      { x, size: 35 },
+      { x: x + 180, size: 60 }
+    ];
+  }}
+];
+
+function spawnPattern() {
+  const groundY = getGroundY();
+  const startX = canvas.width + 50;
+  
+  // Pick a pattern based on difficulty
+  const availablePatterns = difficulty < 3 
+    ? patterns.slice(0, 3) // Easy patterns only at start
+    : patterns;
+  
+  const pattern = availablePatterns[Math.floor(Math.random() * availablePatterns.length)];
+  const obstacleData = pattern.generate(startX);
+  
+  // Spawn obstacles from pattern
+  obstacleData.forEach(obs => {
+    obstacles.push({
+      x: obs.x,
+      y: groundY - obs.size,
+      width: obs.size,
+      height: obs.size
+    });
+    lastObstacleX = Math.max(lastObstacleX, obs.x);
   });
+  
+  // Spawn coins - either as a trail or near obstacles
+  if (pattern.type === 'coins' || Math.random() < 0.6) {
+    const coinCount = pattern.type === 'coins' ? 5 : 2;
+    const coinStartX = pattern.type === 'coins' ? startX : startX + 100;
+    const coinY = groundY - 80 - Math.random() * 100;
+    
+    for (let i = 0; i < coinCount; i++) {
+      coinObjects.push({
+        x: coinStartX + i * 50,
+        y: pattern.type === 'coins' ? coinY : groundY - 120 - Math.random() * 60,
+        width: 30,
+        height: 30
+      });
+    }
+  }
+  
+  // Set cooldown based on pattern
+  const baseGap = minObstacleGap + (Math.random() * 150);
+  patternCooldown = baseGap / speed;
 }
 
 function checkCollision(a, b) {
-  return a.x < b.x + b.width &&
-         a.x + a.width > b.x &&
-         a.y < b.y + b.height &&
-         a.y + a.height > b.y;
+  // Slightly smaller hitbox for better feel
+  const padding = 5;
+  return a.x + padding < b.x + b.width - padding &&
+         a.x + a.width - padding > b.x + padding &&
+         a.y + padding < b.y + b.height - padding &&
+         a.y + a.height - padding > b.y + padding;
 }
 
 function update() {
   if (!gameRunning) return;
   
-  // Player physics
-  player.vy += gravity;
+  const groundY = getGroundY();
+  
+  // Variable jump - hold to go higher
+  if (jumpHeld && isJumping && player.vy < 0) {
+    const holdTime = Date.now() - jumpStartTime;
+    if (holdTime < maxJumpTime) {
+      // Apply reduced gravity while holding (float higher)
+      player.vy += gravity * 0.4;
+    } else {
+      player.vy += gravity;
+    }
+  } else {
+    player.vy += gravity;
+  }
+  
   player.y += player.vy;
   
-  const groundY = canvas.height - 100 - player.height;
-  if (player.y >= groundY) {
-    player.y = groundY;
+  // Ground collision
+  if (player.y >= groundY - player.height) {
+    player.y = groundY - player.height;
     player.vy = 0;
     player.grounded = true;
+    isJumping = false;
   }
+  
+  // Update distance and difficulty
+  distanceTraveled += speed;
+  difficulty = 1 + Math.floor(distanceTraveled / 5000);
+  
+  // Update speed based on difficulty (gentler curve)
+  speed = baseSpeed + (difficulty - 1) * 0.3;
+  if (speed > 10) speed = 10;
+  
+  // Update minimum gap (gets slightly smaller with difficulty)
+  minObstacleGap = Math.max(250, 350 - difficulty * 10);
   
   // Update obstacles
   obstacles.forEach((obs, i) => {
@@ -317,13 +423,15 @@ function update() {
     }
   });
   
-  // Increase difficulty
-  speed = 5 + Math.floor(score / 200) * 0.5;
-  if (speed > 12) speed = 12;
+  // Spawn new patterns
+  patternCooldown--;
+  const rightmostObstacle = obstacles.length > 0 
+    ? Math.max(...obstacles.map(o => o.x)) 
+    : 0;
   
-  // Spawn new objects
-  if (Math.random() < 0.02) spawnObstacle();
-  if (Math.random() < 0.015) spawnCoin();
+  if (patternCooldown <= 0 && rightmostObstacle < canvas.width - minObstacleGap) {
+    spawnPattern();
+  }
   
   // Update UI
   scoreEl.textContent = score;
@@ -354,13 +462,19 @@ function startGame() {
   gameRunning = true;
   score = 0;
   coins = 0;
-  speed = 5;
+  speed = baseSpeed;
+  difficulty = 1;
+  distanceTraveled = 0;
   obstacles = [];
   coinObjects = [];
   particles = [];
-  player.y = canvas.height - 120 - player.height;
+  patternCooldown = 0;
+  lastObstacleX = 0;
+  player.y = getGroundY() - player.height;
   player.vy = 0;
   player.grounded = true;
+  isJumping = false;
+  jumpHeld = false;
   
   startScreen.classList.add('hidden');
   gameOverScreen.classList.add('hidden');
@@ -376,14 +490,24 @@ function gameOver() {
   gameOverScreen.classList.remove('hidden');
 }
 
-// Event listeners
+// Event listeners - track press and release for variable jump
 canvas.addEventListener('touchstart', (e) => {
   e.preventDefault();
-  jump();
+  startJump();
 });
-canvas.addEventListener('mousedown', jump);
+canvas.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  endJump();
+});
+
+canvas.addEventListener('mousedown', startJump);
+canvas.addEventListener('mouseup', endJump);
+
 document.addEventListener('keydown', (e) => {
-  if (e.code === 'Space') jump();
+  if (e.code === 'Space' && !e.repeat) startJump();
+});
+document.addEventListener('keyup', (e) => {
+  if (e.code === 'Space') endJump();
 });
 
 startBtn.addEventListener('click', startGame);
