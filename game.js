@@ -1015,17 +1015,41 @@ function update() {
     isJumping = false;
   }
   
-  // Hover bob animation when grounded
+  // Hover bob animation when grounded (different per character)
   if (player.grounded) {
-    player.bobOffset = Math.sin(Date.now() / 200) * 3;
+    if (selectedChar === 'alien') {
+      player.bobOffset = Math.sin(Date.now() / 300) * 4; // Slower, floatier
+    } else if (selectedChar === 'hovercraft') {
+      player.bobOffset = Math.sin(Date.now() / 150) * 2; // Quick, stable hover
+    } else {
+      player.bobOffset = Math.sin(Date.now() / 200) * 3;
+    }
   } else {
     player.bobOffset = 0;
   }
   
-  // Tilt based on vertical movement
-  const targetTilt = player.vy * 0.015;
-  player.tilt += (targetTilt - player.tilt) * 0.2;
-  player.tilt = Math.max(-0.3, Math.min(0.3, player.tilt));
+  // Tilt based on vertical movement (unique per character)
+  let targetTilt, tiltSpeed, maxTilt;
+  
+  if (selectedChar === 'alien') {
+    // UFO leans forward aggressively when rising, tilts back when falling
+    targetTilt = player.vy * 0.03; // More dramatic
+    tiltSpeed = 0.15; // Slower response (floaty)
+    maxTilt = 0.5; // Can tilt more
+  } else if (selectedChar === 'hovercraft') {
+    // Hovercraft banks smoothly, stays more level
+    targetTilt = player.vy * 0.012;
+    tiltSpeed = 0.3; // Quick stabilization
+    maxTilt = 0.2; // Stays more level
+  } else {
+    // Space kid - default behavior
+    targetTilt = player.vy * 0.015;
+    tiltSpeed = 0.2;
+    maxTilt = 0.3;
+  }
+  
+  player.tilt += (targetTilt - player.tilt) * tiltSpeed;
+  player.tilt = Math.max(-maxTilt, Math.min(maxTilt, player.tilt));
   
   // Distance and difficulty
   distanceTraveled += speed;
