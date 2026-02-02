@@ -1647,98 +1647,102 @@ function drawRoundCharacter() {
   rctx.clearRect(0, 0, 100, 100);
   
   rctx.save();
-  rctx.translate(50, 55);
-  const scale = 1.2;
-  rctx.scale(scale, scale);
+  rctx.translate(50, 50);
   
   // Hover bob animation
   const bob = Math.sin(Date.now() / 300) * 3;
   rctx.translate(0, bob);
   
+  // Use the same simple drawing as char previews (scaled up slightly)
+  const s = 1.3; // scale
+  
   if (selectedChar === 'spacekid') {
     // Body
     rctx.fillStyle = '#ffffff';
     rctx.beginPath();
-    rctx.roundRect(-15, -18, 30, 28, 6);
+    rctx.roundRect(-12*s, -15*s, 24*s, 22*s, 5*s);
     rctx.fill();
     // Helmet
     rctx.fillStyle = '#5588ff';
     rctx.beginPath();
-    rctx.arc(0, -18, 14, 0, Math.PI * 2);
+    rctx.arc(0, -15*s, 11*s, 0, Math.PI * 2);
     rctx.fill();
     // Visor
     rctx.fillStyle = '#88ccff';
     rctx.beginPath();
-    rctx.arc(2, -18, 9, 0, Math.PI * 2);
+    rctx.arc(2*s, -15*s, 7*s, 0, Math.PI * 2);
     rctx.fill();
     // Face
     rctx.fillStyle = '#ffcc99';
     rctx.beginPath();
-    rctx.arc(1, -18, 6, 0, Math.PI * 2);
+    rctx.arc(1*s, -15*s, 5*s, 0, Math.PI * 2);
     rctx.fill();
     // Jetpack
     rctx.fillStyle = '#ff6b6b';
-    rctx.fillRect(-21, -12, 8, 18);
-    // Flame
+    rctx.fillRect(-17*s, -9*s, 6*s, 15*s);
+    // Flame (animated)
+    const flicker = Math.sin(Date.now() / 80) * 2;
     rctx.fillStyle = '#ff4400';
     rctx.beginPath();
-    rctx.moveTo(-18, 6);
-    rctx.lineTo(-21, 18);
-    rctx.lineTo(-14, 6);
+    rctx.moveTo(-15*s, 6*s);
+    rctx.lineTo(-17*s, (16 + flicker)*s);
+    rctx.lineTo(-12*s, 6*s);
     rctx.fill();
     rctx.fillStyle = '#ffcc00';
     rctx.beginPath();
-    rctx.moveTo(-18, 6);
-    rctx.lineTo(-19, 12);
-    rctx.lineTo(-16, 6);
+    rctx.moveTo(-15*s, 6*s);
+    rctx.lineTo(-16*s, (11 + flicker*0.5)*s);
+    rctx.lineTo(-13*s, 6*s);
     rctx.fill();
   } else if (selectedChar === 'hovercraft') {
     // Cockpit
     rctx.fillStyle = '#44ddff';
     rctx.beginPath();
-    rctx.ellipse(0, -15, 14, 11, 0, Math.PI, 0);
+    rctx.ellipse(0, -12*s, 11*s, 9*s, 0, Math.PI, 0);
     rctx.fill();
     // Body
     rctx.fillStyle = '#ff6644';
     rctx.beginPath();
-    rctx.ellipse(0, -4, 21, 9, 0, 0, Math.PI * 2);
+    rctx.ellipse(0, -3*s, 17*s, 7*s, 0, 0, Math.PI * 2);
     rctx.fill();
     // Stripe
     rctx.fillStyle = '#ffcc00';
-    rctx.fillRect(-19, -6, 38, 4);
+    rctx.fillRect(-15*s, -5*s, 30*s, 3*s);
     // Glow
     rctx.fillStyle = 'rgba(0, 255, 255, 0.5)';
     rctx.beginPath();
-    rctx.ellipse(0, 6, 17, 5, 0, 0, Math.PI * 2);
+    rctx.ellipse(0, 5*s, 14*s, 4*s, 0, 0, Math.PI * 2);
     rctx.fill();
   } else if (selectedChar === 'alien') {
     // Head
     rctx.fillStyle = '#88ff88';
     rctx.beginPath();
-    rctx.ellipse(0, -17, 11, 10, 0, Math.PI, 0);
+    rctx.ellipse(0, -14*s, 9*s, 8*s, 0, Math.PI, 0);
     rctx.fill();
     // Eyes
     rctx.fillStyle = '#44dd44';
     rctx.beginPath();
-    rctx.ellipse(0, -20, 6, 7, 0, 0, Math.PI * 2);
+    rctx.ellipse(0, -16*s, 5*s, 6*s, 0, 0, Math.PI * 2);
     rctx.fill();
     rctx.fillStyle = '#111';
     rctx.beginPath();
-    rctx.ellipse(-2, -21, 3, 4, 0, 0, Math.PI * 2);
-    rctx.ellipse(4, -21, 3, 4, 0, 0, Math.PI * 2);
+    rctx.ellipse(-2*s, -17*s, 2.5*s, 3*s, 0, 0, Math.PI * 2);
+    rctx.fill();
+    rctx.beginPath();
+    rctx.ellipse(3*s, -17*s, 2.5*s, 3*s, 0, 0, Math.PI * 2);
     rctx.fill();
     // UFO
     rctx.fillStyle = '#9966cc';
     rctx.beginPath();
-    rctx.ellipse(0, -7, 22, 8, 0, 0, Math.PI * 2);
+    rctx.ellipse(0, -6*s, 18*s, 6*s, 0, 0, Math.PI * 2);
     rctx.fill();
     // Beam
     rctx.fillStyle = 'rgba(136, 255, 136, 0.3)';
     rctx.beginPath();
-    rctx.moveTo(-11, 0);
-    rctx.lineTo(-15, 18);
-    rctx.lineTo(15, 18);
-    rctx.lineTo(11, 0);
+    rctx.moveTo(-9*s, 0);
+    rctx.lineTo(-12*s, 15*s);
+    rctx.lineTo(12*s, 15*s);
+    rctx.lineTo(9*s, 0);
     rctx.fill();
   }
   
