@@ -26,6 +26,24 @@
       </div>
       <button id="start-btn">START</button>
     </div>
+    <div id="char-select" class="hidden">
+      <h1>Choose Your Pilot</h1>
+      <div class="char-options">
+        <div class="char-option" data-char="spacekid">
+          <canvas id="char-preview-0" width="80" height="80"></canvas>
+          <span>Space Kid</span>
+        </div>
+        <div class="char-option" data-char="hovercraft">
+          <canvas id="char-preview-1" width="80" height="80"></canvas>
+          <span>Hovercraft</span>
+        </div>
+        <div class="char-option" data-char="alien">
+          <canvas id="char-preview-2" width="80" height="80"></canvas>
+          <span>Alien UFO</span>
+        </div>
+      </div>
+      <p class="char-hint">Tap to select</p>
+    </div>
     <div id="game-over" class="hidden">
       <h1>Game Over!</h1>
       <p>Score: <span id="final-score">0</span></p>

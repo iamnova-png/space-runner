@@ -9,6 +9,10 @@ const restartBtn = document.getElementById('restart-btn');
 const finalScoreEl = document.getElementById('final-score');
 const finalCoinsEl = document.getElementById('final-coins');
 
+// Characters
+const characters = ['spacekid', 'hovercraft', 'alien'];
+let selectedChar = 'spacekid';
+
 // Game state
 let gameRunning = false;
 let score = 0;
@@ -463,96 +467,204 @@ function drawActiveEffects() {
   }
 }
 
+function drawCharacter(c, x, y, scale = 1, tilt = 0, flameIntensity = 0.5) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  ctx.rotate(tilt);
+  
+  if (c === 'spacekid') {
+    // Body (space suit)
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.roundRect(-20, -25, 40, 35, 8);
+    ctx.fill();
+    
+    // Helmet
+    ctx.fillStyle = '#5588ff';
+    ctx.beginPath();
+    ctx.arc(0, -25, 18, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Visor
+    ctx.fillStyle = '#88ccff';
+    ctx.beginPath();
+    ctx.arc(3, -25, 12, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Face
+    ctx.fillStyle = '#ffcc99';
+    ctx.beginPath();
+    ctx.arc(2, -25, 8, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Eyes
+    ctx.fillStyle = '#333';
+    ctx.beginPath();
+    ctx.arc(0, -27, 2, 0, Math.PI * 2);
+    ctx.arc(6, -27, 2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Smile
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(3, -24, 4, 0.1 * Math.PI, 0.9 * Math.PI);
+    ctx.stroke();
+    
+    // Jetpack
+    ctx.fillStyle = '#ff6b6b';
+    ctx.fillRect(-28, -15, 10, 25);
+    ctx.fillStyle = '#ffaa00';
+    ctx.fillRect(-26, -10, 6, 8);
+    
+    // Flame
+    ctx.fillStyle = '#ff4400';
+    ctx.beginPath();
+    ctx.moveTo(-25, 10);
+    ctx.lineTo(-28, 10 + 15 * flameIntensity);
+    ctx.lineTo(-19, 10);
+    ctx.fill();
+    ctx.fillStyle = '#ffff00';
+    ctx.beginPath();
+    ctx.moveTo(-24, 10);
+    ctx.lineTo(-25, 10 + 8 * flameIntensity);
+    ctx.lineTo(-21, 10);
+    ctx.fill();
+    
+  } else if (c === 'hovercraft') {
+    // Cockpit dome
+    ctx.fillStyle = '#44ddff';
+    ctx.beginPath();
+    ctx.ellipse(0, -20, 18, 14, 0, Math.PI, 0);
+    ctx.fill();
+    
+    // Pilot inside
+    ctx.fillStyle = '#ffcc99';
+    ctx.beginPath();
+    ctx.arc(0, -22, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#333';
+    ctx.beginPath();
+    ctx.arc(-2, -23, 1.5, 0, Math.PI * 2);
+    ctx.arc(3, -23, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Body
+    ctx.fillStyle = '#ff6644';
+    ctx.beginPath();
+    ctx.ellipse(0, -5, 28, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Stripe
+    ctx.fillStyle = '#ffcc00';
+    ctx.fillRect(-25, -8, 50, 4);
+    
+    // Hover glow
+    ctx.fillStyle = `rgba(0, 255, 255, ${0.3 + flameIntensity * 0.3})`;
+    ctx.beginPath();
+    ctx.ellipse(0, 8, 22 + flameIntensity * 3, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Thrusters
+    ctx.fillStyle = '#00ffff';
+    ctx.beginPath();
+    ctx.moveTo(-15, 7);
+    ctx.lineTo(-18, 7 + 10 * flameIntensity);
+    ctx.lineTo(-12, 7);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(15, 7);
+    ctx.lineTo(12, 7 + 10 * flameIntensity);
+    ctx.lineTo(18, 7);
+    ctx.fill();
+    
+  } else if (c === 'alien') {
+    // UFO dome
+    ctx.fillStyle = '#88ff88';
+    ctx.beginPath();
+    ctx.ellipse(0, -22, 14, 12, 0, Math.PI, 0);
+    ctx.fill();
+    
+    // Alien inside
+    ctx.fillStyle = '#44dd44';
+    ctx.beginPath();
+    ctx.ellipse(0, -25, 8, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Big eyes
+    ctx.fillStyle = '#111';
+    ctx.beginPath();
+    ctx.ellipse(-4, -27, 4, 5, -0.2, 0, Math.PI * 2);
+    ctx.ellipse(4, -27, 4, 5, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(-5, -28, 1.5, 0, Math.PI * 2);
+    ctx.arc(3, -28, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Saucer body
+    ctx.fillStyle = '#9966cc';
+    ctx.beginPath();
+    ctx.ellipse(0, -10, 30, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Saucer rim
+    ctx.fillStyle = '#bb88ee';
+    ctx.beginPath();
+    ctx.ellipse(0, -8, 26, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Lights
+    const lightPhase = Date.now() / 200;
+    for (let i = 0; i < 5; i++) {
+      const angle = (i / 5) * Math.PI * 2 + lightPhase;
+      const lx = Math.cos(angle) * 18;
+      ctx.fillStyle = i % 2 === Math.floor(lightPhase) % 2 ? '#ffff00' : '#ff4400';
+      ctx.beginPath();
+      ctx.arc(lx, -8, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    // Beam
+    ctx.fillStyle = `rgba(136, 255, 136, ${0.15 + flameIntensity * 0.2})`;
+    ctx.beginPath();
+    ctx.moveTo(-15, 0);
+    ctx.lineTo(-20, 15 + flameIntensity * 10);
+    ctx.lineTo(20, 15 + flameIntensity * 10);
+    ctx.lineTo(15, 0);
+    ctx.fill();
+  }
+  
+  ctx.restore();
+}
+
 function drawPlayer() {
   const { x, width, height } = player;
   
   // Apply hover bob offset
   const drawY = player.y + player.bobOffset;
+  const cx = x + width/2;
+  const cy = drawY + height/2;
   
   // Flash when invincible
   if (invincibleUntil > Date.now() && Math.floor(Date.now() / 100) % 2 === 0) {
     ctx.globalAlpha = 0.5;
   }
   
-  ctx.save();
-  
-  // Apply tilt rotation
-  ctx.translate(x + width/2, drawY + height/2);
-  ctx.rotate(player.tilt);
-  ctx.translate(-(x + width/2), -(drawY + height/2));
-  
   // Shield glow
   if (activeEffects.shield) {
     ctx.fillStyle = 'rgba(0, 191, 255, 0.3)';
     ctx.beginPath();
-    ctx.arc(x + width/2, drawY + height/2, 40, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 45, 0, Math.PI * 2);
     ctx.fill();
   }
   
-  // Body (space suit)
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath();
-  ctx.roundRect(x, drawY + 15, width, height - 15, 8);
-  ctx.fill();
-  
-  // Helmet
-  ctx.fillStyle = '#5588ff';
-  ctx.beginPath();
-  ctx.arc(x + width/2, drawY + 15, 18, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Visor
-  ctx.fillStyle = '#88ccff';
-  ctx.beginPath();
-  ctx.arc(x + width/2 + 3, drawY + 15, 12, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Face
-  ctx.fillStyle = '#ffcc99';
-  ctx.beginPath();
-  ctx.arc(x + width/2 + 2, drawY + 15, 8, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Eyes
-  ctx.fillStyle = '#333';
-  ctx.beginPath();
-  ctx.arc(x + width/2, drawY + 13, 2, 0, Math.PI * 2);
-  ctx.arc(x + width/2 + 6, drawY + 13, 2, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Smile
-  ctx.strokeStyle = '#333';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.arc(x + width/2 + 3, drawY + 16, 4, 0.1 * Math.PI, 0.9 * Math.PI);
-  ctx.stroke();
-  
-  // Jetpack
-  ctx.fillStyle = '#ff6b6b';
-  ctx.fillRect(x - 8, drawY + 25, 10, 25);
-  ctx.fillStyle = '#ffaa00';
-  ctx.fillRect(x - 6, drawY + 30, 6, 8);
-  
-  // Jetpack flame - always on (idle), bigger when jumping
   const flameIntensity = !player.grounded ? (jumpHeld ? 1.8 : 1.2) : 0.5 + Math.sin(Date.now() / 100) * 0.2;
   
-  // Outer flame
-  ctx.fillStyle = '#ff4400';
-  ctx.beginPath();
-  ctx.moveTo(x - 5, drawY + 50);
-  ctx.lineTo(x - 8, drawY + 50 + (12 + Math.random() * 8) * flameIntensity);
-  ctx.lineTo(x + 1, drawY + 50);
-  ctx.fill();
+  drawCharacter(selectedChar, cx, cy + 5, 1, player.tilt, flameIntensity);
   
-  // Inner flame
-  ctx.fillStyle = '#ffff00';
-  ctx.beginPath();
-  ctx.moveTo(x - 4, drawY + 50);
-  ctx.lineTo(x - 5, drawY + 50 + (6 + Math.random() * 4) * flameIntensity);
-  ctx.lineTo(x - 1, drawY + 50);
-  ctx.fill();
-  
-  ctx.restore();
   ctx.globalAlpha = 1;
 }
 
@@ -1153,8 +1265,111 @@ canvas.addEventListener('mouseup', endJump);
 document.addEventListener('keydown', (e) => { if (e.code === 'Space' && !e.repeat) startJump(); });
 document.addEventListener('keyup', (e) => { if (e.code === 'Space') endJump(); });
 
-startBtn.addEventListener('click', startGame);
-restartBtn.addEventListener('click', startGame);
+// Character select screen
+const charSelectScreen = document.getElementById('char-select');
+const charOptions = document.querySelectorAll('.char-option');
+
+function showCharSelect() {
+  startScreen.classList.add('hidden');
+  charSelectScreen.classList.remove('hidden');
+  drawCharPreviews();
+}
+
+function drawCharPreviews() {
+  characters.forEach((char, i) => {
+    const previewCanvas = document.getElementById(`char-preview-${i}`);
+    const pctx = previewCanvas.getContext('2d');
+    pctx.clearRect(0, 0, 80, 80);
+    
+    pctx.save();
+    pctx.translate(40, 45);
+    
+    // Mini version of drawCharacter
+    if (char === 'spacekid') {
+      pctx.fillStyle = '#ffffff';
+      pctx.beginPath();
+      pctx.roundRect(-12, -15, 24, 22, 5);
+      pctx.fill();
+      pctx.fillStyle = '#5588ff';
+      pctx.beginPath();
+      pctx.arc(0, -15, 11, 0, Math.PI * 2);
+      pctx.fill();
+      pctx.fillStyle = '#88ccff';
+      pctx.beginPath();
+      pctx.arc(2, -15, 7, 0, Math.PI * 2);
+      pctx.fill();
+      pctx.fillStyle = '#ffcc99';
+      pctx.beginPath();
+      pctx.arc(1, -15, 5, 0, Math.PI * 2);
+      pctx.fill();
+      pctx.fillStyle = '#ff6b6b';
+      pctx.fillRect(-17, -9, 6, 15);
+      pctx.fillStyle = '#ff4400';
+      pctx.beginPath();
+      pctx.moveTo(-15, 6);
+      pctx.lineTo(-17, 16);
+      pctx.lineTo(-12, 6);
+      pctx.fill();
+    } else if (char === 'hovercraft') {
+      pctx.fillStyle = '#44ddff';
+      pctx.beginPath();
+      pctx.ellipse(0, -12, 11, 9, 0, Math.PI, 0);
+      pctx.fill();
+      pctx.fillStyle = '#ff6644';
+      pctx.beginPath();
+      pctx.ellipse(0, -3, 17, 7, 0, 0, Math.PI * 2);
+      pctx.fill();
+      pctx.fillStyle = '#ffcc00';
+      pctx.fillRect(-15, -5, 30, 3);
+      pctx.fillStyle = 'rgba(0, 255, 255, 0.5)';
+      pctx.beginPath();
+      pctx.ellipse(0, 5, 14, 4, 0, 0, Math.PI * 2);
+      pctx.fill();
+    } else if (char === 'alien') {
+      pctx.fillStyle = '#88ff88';
+      pctx.beginPath();
+      pctx.ellipse(0, -14, 9, 8, 0, Math.PI, 0);
+      pctx.fill();
+      pctx.fillStyle = '#44dd44';
+      pctx.beginPath();
+      pctx.ellipse(0, -16, 5, 6, 0, 0, Math.PI * 2);
+      pctx.fill();
+      pctx.fillStyle = '#111';
+      pctx.beginPath();
+      pctx.ellipse(-2, -17, 2.5, 3, 0, 0, Math.PI * 2);
+      pctx.ellipse(3, -17, 2.5, 3, 0, 0, Math.PI * 2);
+      pctx.fill();
+      pctx.fillStyle = '#9966cc';
+      pctx.beginPath();
+      pctx.ellipse(0, -6, 18, 6, 0, 0, Math.PI * 2);
+      pctx.fill();
+      pctx.fillStyle = 'rgba(136, 255, 136, 0.3)';
+      pctx.beginPath();
+      pctx.moveTo(-9, 0);
+      pctx.lineTo(-12, 15);
+      pctx.lineTo(12, 15);
+      pctx.lineTo(9, 0);
+      pctx.fill();
+    }
+    
+    pctx.restore();
+  });
+}
+
+function selectCharacter(char) {
+  selectedChar = char;
+  charSelectScreen.classList.add('hidden');
+  startGame();
+}
+
+charOptions.forEach(opt => {
+  opt.addEventListener('click', () => {
+    selectCharacter(opt.dataset.char);
+  });
+});
+
+startBtn.addEventListener('click', showCharSelect);
+restartBtn.addEventListener('click', showCharSelect);
 
 // Initialize
 updateStartScreen();
