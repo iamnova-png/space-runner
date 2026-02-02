@@ -49,6 +49,7 @@ let stars = [];
 let particles = [];
 let floatingTexts = [];
 let shootingStars = [];
+let bgLayers = { far: [], mid: [], near: [] };
 
 // Level generation
 let patternCooldown = 0;
@@ -136,6 +137,42 @@ function initStars() {
 }
 initStars();
 
+// Initialize parallax background layers
+function initBgLayers() {
+  bgLayers = { far: [], mid: [], near: [] };
+  
+  // Far layer - distant mountains (slow, large)
+  for (let i = 0; i < 4; i++) {
+    bgLayers.far.push({
+      x: i * 400 + Math.random() * 100,
+      width: 300 + Math.random() * 200,
+      height: 80 + Math.random() * 60,
+      peaks: Math.floor(2 + Math.random() * 3)
+    });
+  }
+  
+  // Mid layer - rock formations
+  for (let i = 0; i < 6; i++) {
+    bgLayers.mid.push({
+      x: i * 300 + Math.random() * 100,
+      width: 60 + Math.random() * 80,
+      height: 40 + Math.random() * 50,
+      type: Math.random() < 0.5 ? 'pillar' : 'boulder'
+    });
+  }
+  
+  // Near layer - floating rocks/debris
+  for (let i = 0; i < 5; i++) {
+    bgLayers.near.push({
+      x: i * 350 + Math.random() * 150,
+      y: 100 + Math.random() * 200,
+      size: 15 + Math.random() * 25,
+      floatOffset: Math.random() * Math.PI * 2
+    });
+  }
+}
+initBgLayers();
+
 // Draw functions
 function drawStars() {
   const env = getEnv();
@@ -207,6 +244,98 @@ function drawEnvironmentParticles() {
       isEnvParticle: true
     });
   }
+}
+
+function drawParallaxLayers() {
+  const groundY = getGroundY();
+  const env = getEnv();
+  
+  // Far layer - distant mountains (slowest, 0.2x speed)
+  const farColor = currentEnvIndex === 0 ? '#2a2545' : 
+                   currentEnvIndex === 1 ? '#4a2020' : '#1a0a30';
+  ctx.fillStyle = farColor;
+  
+  bgLayers.far.forEach(m => {
+    ctx.beginPath();
+    ctx.moveTo(m.x, groundY);
+    
+    const peakWidth = m.width / m.peaks;
+    for (let i = 0; i < m.peaks; i++) {
+      const px = m.x + peakWidth * (i + 0.5);
+      const peakHeight = m.height * (0.6 + Math.random() * 0.4);
+      ctx.lineTo(px, groundY - peakHeight);
+    }
+    
+    ctx.lineTo(m.x + m.width, groundY);
+    ctx.closePath();
+    ctx.fill();
+    
+    m.x -= speed * 0.15;
+    if (m.x + m.width < 0) {
+      m.x = canvas.width + Math.random() * 100;
+      m.width = 300 + Math.random() * 200;
+      m.height = 80 + Math.random() * 60;
+    }
+  });
+  
+  // Mid layer - rock formations (0.4x speed)
+  const midColor = currentEnvIndex === 0 ? '#3a3560' : 
+                   currentEnvIndex === 1 ? '#5a3030' : '#2a1545';
+  ctx.fillStyle = midColor;
+  
+  bgLayers.mid.forEach(r => {
+    if (r.type === 'pillar') {
+      // Tall rock pillar
+      ctx.beginPath();
+      ctx.moveTo(r.x, groundY);
+      ctx.lineTo(r.x + r.width * 0.2, groundY - r.height);
+      ctx.lineTo(r.x + r.width * 0.5, groundY - r.height - 15);
+      ctx.lineTo(r.x + r.width * 0.8, groundY - r.height);
+      ctx.lineTo(r.x + r.width, groundY);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      // Boulder
+      ctx.beginPath();
+      ctx.arc(r.x + r.width/2, groundY - r.height/2, r.height/2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    r.x -= speed * 0.35;
+    if (r.x + r.width < 0) {
+      r.x = canvas.width + Math.random() * 150;
+      r.width = 60 + Math.random() * 80;
+      r.height = 40 + Math.random() * 50;
+    }
+  });
+  
+  // Near layer - floating rocks (0.6x speed)
+  const nearColor = currentEnvIndex === 0 ? '#4a4575' : 
+                    currentEnvIndex === 1 ? '#6a4545' : '#3a2555';
+  ctx.fillStyle = nearColor;
+  
+  bgLayers.near.forEach(rock => {
+    const floatY = rock.y + Math.sin(Date.now() / 800 + rock.floatOffset) * 8;
+    
+    ctx.beginPath();
+    ctx.arc(rock.x, floatY, rock.size, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Crater detail
+    ctx.fillStyle = currentEnvIndex === 0 ? '#3a3560' : 
+                    currentEnvIndex === 1 ? '#5a3535' : '#2a1545';
+    ctx.beginPath();
+    ctx.arc(rock.x - rock.size * 0.2, floatY - rock.size * 0.2, rock.size * 0.25, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = nearColor;
+    
+    rock.x -= speed * 0.55;
+    if (rock.x + rock.size < 0) {
+      rock.x = canvas.width + rock.size + Math.random() * 100;
+      rock.y = 100 + Math.random() * 200;
+      rock.size = 15 + Math.random() * 25;
+    }
+  });
 }
 
 function drawGround() {
@@ -855,6 +984,7 @@ function draw() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
   drawStars();
+  drawParallaxLayers();
   drawGround();
   drawParticles();
   
@@ -899,6 +1029,7 @@ function startGame() {
   particles = [];
   floatingTexts = [];
   shootingStars = [];
+  initBgLayers();
   patternCooldown = 0;
   powerUpCooldown = 100;
   player.y = getGroundY() - player.height;
