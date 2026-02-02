@@ -781,6 +781,11 @@ function drawCharacter(c, x, y, scale = 1, tilt = 0, flameIntensity = 0.5) {
 }
 
 function drawPlayer() {
+  // Don't draw on main canvas when round complete UI is showing
+  if (roundComplete && document.getElementById('round-complete').classList.contains('show-ui')) {
+    return;
+  }
+  
   const { x, width, height } = player;
   
   // Apply hover bob offset
@@ -1398,6 +1403,12 @@ function draw() {
 function gameLoop() {
   update();
   draw();
+  
+  // Keep round character animating when UI is showing
+  if (roundComplete && document.getElementById('round-complete').classList.contains('show-ui')) {
+    drawRoundCharacter();
+  }
+  
   requestAnimationFrame(gameLoop);
 }
 
