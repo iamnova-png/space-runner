@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Space Runner 🚀</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game"></canvas>
+    <div id="ui">
+      <div id="score">0</div>
+      <div id="coins">🪙 0</div>
+    </div>
+    <div id="start-screen">
+      <h1>🚀 Space Runner</h1>
+      <p>Tap to jump!</p>
+      <button id="start-btn">START</button>
+    </div>
+    <div id="game-over" class="hidden">
+      <h1>Game Over!</h1>
+      <p>Score: <span id="final-score">0</span></p>
+      <p>Coins: <span id="final-coins">0</span></p>
+      <button id="restart-btn">PLAY AGAIN</button>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
