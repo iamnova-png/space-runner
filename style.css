@@ -54,21 +54,53 @@ html, body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: rgba(10, 10, 32, 0.9);
+  background: rgba(10, 10, 32, 0.95);
   z-index: 20;
 }
 
 #start-screen h1, #game-over h1 {
   font-size: 36px;
   color: #fff;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   text-shadow: 0 0 20px #5588ff;
 }
 
 #start-screen p, #game-over p {
-  font-size: 20px;
+  font-size: 18px;
   color: #aaccff;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
+}
+
+#high-score {
+  font-size: 22px;
+  color: #ffd700;
+  margin: 15px 0;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.powerup-legend {
+  display: flex;
+  gap: 20px;
+  margin: 15px 0 25px;
+  font-size: 14px;
+  color: #88aaff;
+}
+
+.powerup-legend span {
+  background: rgba(255,255,255,0.1);
+  padding: 5px 12px;
+  border-radius: 15px;
+}
+
+#new-high-score {
+  font-size: 20px;
+  color: #ffd700;
+  animation: pulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
 }
 
 button {
@@ -91,4 +123,21 @@ button:active {
 
 .hidden {
   display: none !important;
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+  #start-screen h1, #game-over h1 {
+    font-size: 28px;
+  }
+  
+  .powerup-legend {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  button {
+    padding: 12px 40px;
+    font-size: 18px;
+  }
 }
