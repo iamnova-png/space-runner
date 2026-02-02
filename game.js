@@ -729,8 +729,8 @@ function update() {
   distanceTraveled += speed;
   difficulty = 1 + Math.floor(distanceTraveled / 5000);
   
-  // Environment progression
-  const newEnvIndex = Math.min(Math.floor(distanceTraveled / 10000), environments.length - 1);
+  // Environment progression (change every ~30 seconds of gameplay)
+  const newEnvIndex = Math.min(Math.floor(distanceTraveled / 4000), environments.length - 1);
   if (newEnvIndex !== currentEnvIndex) {
     currentEnvIndex = newEnvIndex;
     spawnFloatingText(canvas.width / 2, canvas.height / 2, '🌍 ' + getEnv().name.toUpperCase(), '#ffffff');
